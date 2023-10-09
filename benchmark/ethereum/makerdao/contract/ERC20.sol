@@ -25,11 +25,17 @@ interface IERC20 {
 contract ERC20 is IERC20 {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
-    
+
     uint256 private _totalSupply;
     string public name = "Test Token on Axiom";
     string public symbol = "TAXM";
     uint8 public decimals = 9;
+
+    constructor(address sender, uint256 amount) public {
+        _balances[sender] += amount;
+        _totalSupply += amount;
+        emit Transfer(address(0), sender, amount);
+    }
 
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
@@ -40,7 +46,7 @@ contract ERC20 is IERC20 {
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
-        require(balanceOf(msg.sender) >= amount, "Insufficient balance"); 
+        require(balanceOf(msg.sender) >= amount, "Insufficient balance");
 
         _balances[msg.sender] -= amount;
         _balances[recipient] += amount;
@@ -63,8 +69,8 @@ contract ERC20 is IERC20 {
         address recipient,
         uint256 amount
     ) external returns (bool) {
-        require(allowance(sender, msg.sender) >=  amount, "Insufficient allowance");
-        require(balanceOf(sender) >= amount, "Insufficient balance"); 
+        require(allowance(sender, msg.sender) >= amount, "Insufficient allowance");
+        require(balanceOf(sender) >= amount, "Insufficient balance");
 
         _allowances[sender][msg.sender] -= amount;
 

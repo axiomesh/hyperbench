@@ -1,11 +1,11 @@
 local case = testcase.new()
 
 function case:BeforeRun()
-    self.blockchain:SetContext('{"contract_name": "Vat", "contract_addr": "0xD89C2A137439b31E302CFA72294994ee3C0519C7"}')
-    self.blockchain:SetContext('{"contract_name": "ERC20", "contract_addr": "0x2E1f445a0170574f1A4b931aEb6Bce25951490bA"}')
-    self.blockchain:SetContext('{"contract_name": "Dai", "contract_addr": "0xCc224039B38A493CdEd0909783127EAcB5012D01"}')
-    self.blockchain:SetContext('{"contract_name": "DaiJoin", "contract_addr": "0x4c335ac75D0610D9D03926a751A0698d29782f0a"}')
-    self.blockchain:SetContext('{"contract_name": "GemJoin", "contract_addr": "0x7eC62F11970b96E2010F665B15174A47Dd3179B5"}')
+    self.blockchain:SetContext('{"contract_name": "Vat", "contract_addr": "0xac9766576143a129fe779d6d43971E3236F9B747"}')
+    self.blockchain:SetContext('{"contract_name": "ERC20", "contract_addr": "0x14d493c0b0213a8Cf33186b6C535152cECb3a17b"}')
+    self.blockchain:SetContext('{"contract_name": "Dai", "contract_addr": "0x847C5302e34997c11fc3C2d4b1dbDcaA83577E8f"}')
+    self.blockchain:SetContext('{"contract_name": "DaiJoin", "contract_addr": "0x1B5D2dB0A94968a07d69590165D58BeFB511a4f3"}')
+    self.blockchain:SetContext('{"contract_name": "GemJoin", "contract_addr": "0x6F6BB85b8aaAccC27d11492bEb21817DA49D5642"}')
     -- -- transfer token
     -- local tokenAddrList = {
     --     "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
