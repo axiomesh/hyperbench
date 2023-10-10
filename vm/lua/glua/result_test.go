@@ -1,10 +1,11 @@
 package glua
 
 import (
-	fcom "github.com/meshplus/hyperbench-common/common"
+	"testing"
+
+	fcom "github.com/meshplus/hyperbench/common"
 	"github.com/stretchr/testify/assert"
 	lua "github.com/yuin/gopher-lua"
-	"testing"
 )
 
 func Test_CommonResult(t *testing.T) {

@@ -1,14 +1,15 @@
 [engine]
-rate = 100
-duration = "30s"
-cap = 20
-accounts = 1000
+rate = 600
+duration = "300s"
+cap = 600
+accounts = 250
 
 [client]
 script = "benchmark/ethereum/makerdao/script.lua" # 脚本
 type = "eth"                                      # 区块链类型
 contract = "benchmark/ethereum/makerdao/contract" # 合约目录路径
-contract_num = 0                                  # 合约部署数量
+contract_num = 1                                  # 合约部署数量
+contract_name = "Deployer"                        # 部署合约名称
 config = "benchmark/ethereum/makerdao/eth"        # 区块链SDK配置路径
 plugin = "./eth.so"                               # 插件路径
 args = []                                         # 合约参数路径

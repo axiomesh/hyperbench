@@ -1,7 +1,7 @@
 package vmpool
 
 import (
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 
 	"path"
 	"strings"

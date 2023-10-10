@@ -1,8 +1,8 @@
 package glua
 
 import (
-	"github.com/meshplus/hyperbench-common/base"
-	fcom "github.com/meshplus/hyperbench-common/common"
+	"github.com/meshplus/hyperbench/base"
+	fcom "github.com/meshplus/hyperbench/common"
 )
 
 const (

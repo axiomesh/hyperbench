@@ -24,12 +24,14 @@ logs/*
 db/*
 keystore/*
 debug
-**/go.sum
 **/*.log
 **/*.db
 **/*.csv
+bin/*
 packrd
 lua/testImpl.lua
 dist
 
 node_modules
+package.json
+package-lock.json

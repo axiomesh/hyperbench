@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 
 	"net/http"
 	"os"

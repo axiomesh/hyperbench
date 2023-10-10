@@ -8,6 +8,7 @@ accounts = 1000
 script = "benchmark/ethereum/erc20/script.lua"     # 脚本
 type = "eth"                                        # 区块链类型
 contract = "benchmark/ethereum/erc20/contract"     # 合约目录路径
+contract_name = "ERC20"                            # 部署合约的名称
 contract_num = 1                                  # 合约部署数量
 config = "benchmark/ethereum/erc20/eth"            # 区块链SDK配置路径
 plugin = "./eth.so"                                 # 插件路径

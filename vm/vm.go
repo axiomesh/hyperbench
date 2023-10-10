@@ -1,7 +1,7 @@
 package vm
 
 import (
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 
 	"github.com/meshplus/hyperbench/vm/base"
 	"github.com/meshplus/hyperbench/vm/lua"

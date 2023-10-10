@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.19;
 
 abstract contract BaseDeployer {
     string public salt = "default";
 
     event Deployed(string name, address addr);
 
-    constructor() public {
+    constructor() {
         deploy();
     }
 
@@ -32,7 +32,7 @@ abstract contract BaseDeployer {
         return addr;
     }
 
-    function getChainID() internal pure returns (uint256 id) {
+    function getChainID() internal view returns (uint256 id) {
         assembly {
             id := chainid()
         }
@@ -65,7 +65,7 @@ contract Deployer is BaseDeployer {
         daiAddr = deployContract(
             "dai",
             // encode with constructor parameters: constructor(uint256 chainId_, address sender)
-            abi.encodePacked(bytecode, abi.encode(getChainID(), 0xC98FF0B7987937882AB2137b4075c51c442cB1EE))
+            abi.encodePacked(bytecode, abi.encode(getChainID(), 0x70997970C51812dc3A010C7d01b50e0d17dc79C8))
         );
     }
 
@@ -77,7 +77,7 @@ contract Deployer is BaseDeployer {
             // encode with constructor parameters: constructor(address sender, uint256 amount)
             abi.encodePacked(
                 bytecode,
-                abi.encode(0xC98FF0B7987937882AB2137b4075c51c442cB1EE, 1000000000000000000000)
+                abi.encode(0x70997970C51812dc3A010C7d01b50e0d17dc79C8, 1000000000000000000000)
             )
         );
     }
@@ -88,7 +88,7 @@ contract Deployer is BaseDeployer {
         vatAddr = deployContract(
             "vat",
             // encode with constructor parameters: constructor(address sender)
-            abi.encodePacked(bytecode, abi.encode(0xC98FF0B7987937882AB2137b4075c51c442cB1EE))
+            abi.encodePacked(bytecode, abi.encode(0x70997970C51812dc3A010C7d01b50e0d17dc79C8))
         );
     }
 
@@ -102,7 +102,7 @@ contract Deployer is BaseDeployer {
             //        address vat_,
             //        address dai_
             //    )
-            abi.encodePacked(bytecode, abi.encode(0xC98FF0B7987937882AB2137b4075c51c442cB1EE, vatAddr, daiAddr))
+            abi.encodePacked(bytecode, abi.encode(0x70997970C51812dc3A010C7d01b50e0d17dc79C8, vatAddr, daiAddr))
         );
     }
 
@@ -120,7 +120,7 @@ contract Deployer is BaseDeployer {
             abi.encodePacked(
                 bytecode,
                 abi.encode(
-                    0xC98FF0B7987937882AB2137b4075c51c442cB1EE,
+                    0x70997970C51812dc3A010C7d01b50e0d17dc79C8,
                     vatAddr,
                     keccak256(abi.encodePacked("")),
                     erc20Addr
