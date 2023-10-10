@@ -4,9 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 
-	"github.com/meshplus/hyperbench/plugins/blockchain"
 	"github.com/meshplus/hyperbench/vm"
 	"github.com/meshplus/hyperbench/vm/base"
 	"github.com/pkg/errors"
@@ -31,7 +30,6 @@ type Master interface {
 // LocalMaster is the implement of master in local
 type LocalMaster struct {
 	masterVM vm.VM
-	params   []string
 }
 
 // Prepare is used to prepare
@@ -72,9 +70,6 @@ func (m *LocalMaster) LogStatus() (end int64, err error) {
 
 // NewLocalMaster create LocalMaster.
 func NewLocalMaster() (*LocalMaster, error) {
-	blockchain.InitPlugin()
-
-	params := viper.GetStringSlice(fcom.ClientContractArgsPath)
 	scriptPath := viper.GetString(fcom.ClientScriptPath)
 	vmType := strings.TrimPrefix(filepath.Ext(scriptPath), ".")
 	masterVM, err := vm.NewVM(vmType, base.ConfigBase{
@@ -90,6 +85,5 @@ func NewLocalMaster() (*LocalMaster, error) {
 
 	return &LocalMaster{
 		masterVM: masterVM,
-		params:   params,
 	}, nil
 }

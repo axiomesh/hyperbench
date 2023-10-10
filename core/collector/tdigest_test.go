@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/influxdata/tdigest"
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 
 	"github.com/stretchr/testify/assert"
 )

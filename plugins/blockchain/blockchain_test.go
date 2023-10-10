@@ -3,29 +3,10 @@ package blockchain
 import (
 	"testing"
 
-	"github.com/meshplus/hyperbench-common/base"
-	fcom "github.com/meshplus/hyperbench-common/common"
-	"github.com/spf13/viper"
+	"github.com/meshplus/hyperbench/base"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitPlugin(t *testing.T) {
-	t.Skip()
-	InitPlugin()
-
-	viper.Set(fcom.ClientTypePath, "hyperchain")
-	InitPlugin()
-
-	viper.Set(fcom.ClientTypePath, "fabric")
-	InitPlugin()
-
-	viper.Set(fcom.ClientTypePath, "eth")
-	InitPlugin()
-
-	viper.Set(fcom.ClientTypePath, "xuperchain")
-	InitPlugin()
-
-}
 func TestNewBlockchain(t *testing.T) {
 	t.Skip()
 	bk, err := NewBlockchain(base.ClientConfig{})

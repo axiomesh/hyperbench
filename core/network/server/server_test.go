@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 
 	"github.com/meshplus/hyperbench/core/network/client"
 	"github.com/pkg/errors"

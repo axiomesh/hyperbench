@@ -1,7 +1,7 @@
 package glua
 
 import (
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 	idex "github.com/meshplus/hyperbench/plugins/index"
 	"github.com/meshplus/hyperbench/plugins/toolkit"
 	lua "github.com/yuin/gopher-lua"

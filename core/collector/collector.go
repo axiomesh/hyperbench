@@ -1,7 +1,7 @@
 package collector
 
 import (
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 )
 
 // Collector is used to collect result and generate statistic data group by label

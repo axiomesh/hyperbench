@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 	"github.com/spf13/viper"
 
 	"sync"

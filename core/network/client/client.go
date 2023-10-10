@@ -13,7 +13,7 @@ import (
 	"time"
 
 	json "github.com/json-iterator/go"
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 
 	"github.com/meshplus/hyperbench/core/collector"
 	"github.com/meshplus/hyperbench/core/network"

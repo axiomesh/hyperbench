@@ -6,13 +6,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 	"github.com/op/go-logging"
 
 	"github.com/meshplus/hyperbench/core/collector"
 	"github.com/meshplus/hyperbench/core/engine"
 	"github.com/meshplus/hyperbench/core/vmpool"
-	"github.com/meshplus/hyperbench/plugins/blockchain"
 	"github.com/meshplus/hyperbench/vm"
 )
 
@@ -44,8 +43,6 @@ type LocalWorkerConfig struct {
 
 // NewLocalWorker create LocalWorker.
 func NewLocalWorker(config LocalWorkerConfig) (*LocalWorker, error) {
-	blockchain.InitPlugin()
-
 	localWorker := LocalWorker{
 		logger:    fcom.GetLogger("worker"),
 		collector: collector.NewTDigestSummaryCollector(),
@@ -69,8 +66,8 @@ func NewLocalWorker(config LocalWorkerConfig) (*LocalWorker, error) {
 
 	// init index
 	idx := fcom.TxIndex{
-		TxIdx:     -1,
-		MissIdx:   0,
+		TxIdx:   -1,
+		MissIdx: 0,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	localWorker.conf = config

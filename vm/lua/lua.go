@@ -5,8 +5,8 @@ import (
 
 	"github.com/meshplus/hyperbench/vm/lua/glua"
 
-	base2 "github.com/meshplus/hyperbench-common/base"
-	fcom "github.com/meshplus/hyperbench-common/common"
+	base2 "github.com/meshplus/hyperbench/base"
+	fcom "github.com/meshplus/hyperbench/common"
 	"github.com/meshplus/hyperbench/plugins/blockchain"
 	idex "github.com/meshplus/hyperbench/plugins/index"
 	"github.com/meshplus/hyperbench/plugins/toolkit"
@@ -259,9 +259,11 @@ func (v *VM) Close() {
 func (v *VM) setPlugins(table *lua.LTable) (err error) {
 
 	clientType, clientConfigPath := viper.GetString(fcom.ClientTypePath), viper.GetString(fcom.ClientConfigPath)
-	options := viper.GetStringMap(fcom.ClientOptionPath)
 	contractPath := viper.GetString(fcom.ClientContractPath)
-	args, _ := viper.Get(fcom.ClientContractArgsPath).([]interface{})
+	contractNum := viper.GetUint64(fcom.ClientContractNum)
+	contractName := viper.GetString(fcom.ClientContractName)
+	//args := viper.GetStringSlice(fcom.ClientContractArgsPath)
+	options := viper.GetStringMap(fcom.ClientOptionPath)
 	options["vmIdx"] = v.index.VM
 	options["wkIdx"] = v.index.Worker
 
@@ -269,7 +271,9 @@ func (v *VM) setPlugins(table *lua.LTable) (err error) {
 		ClientType:   clientType,
 		ConfigPath:   clientConfigPath,
 		ContractPath: contractPath,
-		Args:         args,
+		ContractName: contractName,
+		ContractNum:  contractNum,
+		//Args:         args,
 		Options:      options,
 	})
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	lua "github.com/yuin/gopher-lua"

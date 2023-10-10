@@ -3,7 +3,7 @@ package glua
 import (
 	"fmt"
 
-	fcom "github.com/meshplus/hyperbench-common/common"
+	fcom "github.com/meshplus/hyperbench/common"
 	lua "github.com/yuin/gopher-lua"
 )
 
