@@ -1,8 +1,8 @@
 [engine]
-rate = 600
+rate = 50
 duration = "300s"
-cap = 600
-accounts = 250
+cap = 4
+accounts = 4
 
 [client]
 script = "benchmark/ethereum/makerdao/script.lua" # 脚本

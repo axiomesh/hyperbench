@@ -22,7 +22,7 @@ visual
 vendor/github.com/mattn/go-sqlite3/
 logs/*
 db/*
-keystore/*
+**/keystore/*
 debug
 **/*.log
 **/*.db
