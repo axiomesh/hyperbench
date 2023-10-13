@@ -1,5 +1,9 @@
 local case = testcase.new()
 
+function sleep(n)
+    os.execute("sleep " .. tonumber(n))
+end
+
 function case:BeforeRun()
     self.blockchain:SetContext('{"contract_name": "Vat", "contract_addr": "0xac9766576143a129fe779d6d43971E3236F9B747"}')
     self.blockchain:SetContext('{"contract_name": "ERC20", "contract_addr": "0x14d493c0b0213a8Cf33186b6C535152cECb3a17b"}')
@@ -18,9 +22,10 @@ function case:BeforeRun()
             result = self.blockchain:Transfer({
                 from = from,
                 to = toAddr,
-                amount = 1000,
+                amount = 100,
                 extra = "11",
             })
+            sleep(0.1)
         end
     end
 
@@ -36,6 +41,7 @@ function case:BeforeRun()
             func = "mint",
             args = {100000000},
         })
+        sleep(0.1)
     end
 
     -- wait token confirm
