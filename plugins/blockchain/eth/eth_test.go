@@ -2,7 +2,9 @@ package eth
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"os"
+	"reflect"
 	"strconv"
 	"testing"
 
@@ -302,5 +304,33 @@ func TestGetRandomAccount(t *testing.T) {
 		acc1 := e.GetRandomAccountByGroup()
 		acc2 := e.GetRandomAccount(acc1)
 		assert.NotEqualValues(t, acc1, acc2)
+	}
+}
+
+func TestConvertArgs(t *testing.T) {
+	e := &ETH{}
+
+	// Example test case
+	// 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 is an open address
+	args := []interface{}{"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", float64(42), []interface{}{"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"}}
+	expectedAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+
+	result := e.convertArgs(args)
+	// Use reflection to check the type of the third element
+	thirdElem := reflect.ValueOf(result[2])
+	if thirdElem.Kind() != reflect.Array && thirdElem.Kind() != reflect.Slice {
+		t.Fatalf("Third element is not an array or slice, it is: %v", thirdElem.Kind())
+	}
+
+	// Check that each element in the array/slice is a common.Address
+	for i := 0; i < thirdElem.Len(); i++ {
+		addr, ok := thirdElem.Index(i).Interface().(common.Address)
+		if !ok {
+			t.Fatalf("Element %d in the array is not a common.Address", i)
+		}
+		// Optionally, check if the address matches an expected value
+		if addr != expectedAddress {
+			t.Fatalf("Expected address %v at index %d, got %v", expectedAddress, i, addr)
+		}
 	}
 }
