@@ -32,6 +32,13 @@ var keyFilePaths = []string{
 	"invoke/eth/keystore/keys",
 }
 
+var keyGeneratePaths = []string{
+	"transfer/eth/keystore/keys",
+	"erc20/eth/keystore/keys",
+	"uniswap/eth/keystore/keys",
+	"makerdao/eth/keystore/keys",
+}
+
 const TotalAccount = 2000000
 
 func TestAccount(t *testing.T) {
@@ -39,8 +46,30 @@ func TestAccount(t *testing.T) {
 		sk, err := crypto.HexToECDSA(strings.TrimPrefix(key, "0x"))
 		assert.Nil(t, err)
 		addr := crypto.PubkeyToAddress(sk.PublicKey)
+		t.Logf("address is: %s, private key is: %s", addr.String(), key)
+	}
+}
 
-		t.Logf("address is: %s", addr.String())
+func TestGenerate2MillionAccount(t *testing.T) {
+	for _, keyFilePath := range keyGeneratePaths {
+		dstFile, err := os.OpenFile(keyFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		assert.Nil(t, err)
+
+		var sk *ecdsa.PrivateKey
+		for i := 0; i < TotalAccount; i++ {
+			sk, err = crypto.GenerateKey()
+			assert.Nil(t, err)
+
+			privKey := hex.EncodeToString(crypto.FromECDSA(sk))
+
+			_, err = dstFile.Write([]byte(privKey))
+			assert.Nil(t, err)
+			_, err = dstFile.Write([]byte("\n"))
+			assert.Nil(t, err)
+		}
+		err = dstFile.Close()
+		assert.Nil(t, err)
+		t.Logf("finish generate %s", keyFilePath)
 	}
 }
 

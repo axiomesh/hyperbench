@@ -5,12 +5,16 @@ function sleep(n)
 end
 
 function case:BeforeRun()
-    -- transfer token
-    local accountNum = self.index.Accounts
     --print("accounts num:" .. self.index.Accounts)
     local from = "9965507D1a55bcC2695C58ba16FB37d819B0A4dc"
+    if self.index.Accounts < 2 then
+        print("Accounts number must be at least 2")
+        return
+    end
+    local accountNum = math.min(self.index.Accounts, 200)
+--     print("accounts num:" .. accountNum)
     local result
-    for i=1,accountNum do
+    for i=1, accountNum do
         local toAddr = self.blockchain:GetAccount(i-1)
         if toAddr ~= from then
             result = self.blockchain:Transfer({
@@ -27,13 +31,13 @@ function case:BeforeRun()
     self.blockchain:Confirm(result)
 
     -- mint erc20
-    for i=1,accountNum do
+    for i=1, accountNum do
         local fromAddr = self.blockchain:GetAccount(i-1)
         result = self.blockchain:Invoke({
             caller = fromAddr,
             contract = "ERC20", -- contract name is the contract file name under directory invoke/contract
             func = "mint",
-            args = {100000000},
+            args = {10000000000},
         })
         sleep(0.1)
     end
@@ -47,7 +51,9 @@ end
 
 function case:Run()
     -- invoke erc20 contract
-    local fromAddr = self.blockchain:GetRandomAccountByGroup()
+    local accountNum = math.min(self.index.Accounts, 200)
+    local randomFaucet = self.toolkit.RandInt(0, accountNum)
+    local fromAddr = self.blockchain:GetAccount(randomFaucet)
     local toAddr = self.blockchain:GetRandomAccount(fromAddr)
     --print("to addr:" .. toAddr)
     local random = self.toolkit.RandInt(0, 2)
@@ -61,19 +67,20 @@ function case:Run()
             args = {toAddr, value},
         })
     else
+        -- make sure that randomFaucet is not equal to randomFaucet2
+        randomFaucet2 = (randomFaucet + self.toolkit.RandInt(1, accountNum+1)) % accountNum
+        fromAddr2 = self.blockchain:GetAccount(randomFaucet2)
         result = self.blockchain:Invoke({
             caller = fromAddr,
             contract = "ERC20",
             func = "approve",
-            args = {toAddr, value},
+            args = {fromAddr2, value},
         })
-
-        recvAddr = self.blockchain:GetRandomAccount(fromAddr)
         result = self.blockchain:Invoke({
-            caller = toAddr,
+            caller = fromAddr2,
             contract = "ERC20",
             func = "transferFrom",
-            args = {fromAddr, recvAddr, value},
+            args = {fromAddr, toAddr, value},
         })
     end
 

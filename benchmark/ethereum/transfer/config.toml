@@ -1,8 +1,8 @@
 [engine]
-rate = 50
-duration = "300s"
+rate = 150
+duration = "200h"
 cap = 20
-accounts = 80
+accounts = 2000000
 
 [client]
 script = "benchmark/ethereum/transfer/script.lua"   # 脚本
