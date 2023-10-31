@@ -12,7 +12,7 @@ type Invoke struct {
 type Transfer struct {
 	From   string `mapstructure:"from"`
 	To     string `mapstructure:"to"`
-	Amount int64  `mapstructure:"amount"`
+	Amount string  `mapstructure:"amount"`
 	Extra  string `mapstructure:"extra"`
 }
 

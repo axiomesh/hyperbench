@@ -46,8 +46,13 @@ func (v *VMBase) Statistic(from, to int64) (*fcom.RemoteStatistic, error) {
 	return &fcom.RemoteStatistic{}, nil
 }
 
-// LogStatus records blockheight and time
-func (v *VMBase) LogStatus() (int64, error) {
+// LogStartStatus records start blockheight and time
+func (v *VMBase) LogStartStatus() (int64, error) {
+	return 0, nil
+}
+
+// LogEndStatus records end blockheight and time
+func (v *VMBase) LogEndStatus() (int64, error) {
 	return 0, nil
 }
 

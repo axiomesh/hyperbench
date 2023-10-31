@@ -8,6 +8,7 @@ import (
 	fcom "github.com/meshplus/hyperbench/common"
 	"github.com/meshplus/hyperbench/core/controller"
 	"github.com/meshplus/hyperbench/core/network/server"
+	"github.com/meshplus/hyperbench/plugins/blockchain/eth"
 	"github.com/op/go-logging"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
@@ -100,6 +101,9 @@ func initBenchmark(dir string) {
 	}
 	viper.Set(fcom.BenchmarkDirPath, dir)
 	fcom.InitLog()
+
+	// init once
+	eth.InitEth()
 }
 
 func runBenchmark(dir string) {

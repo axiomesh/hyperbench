@@ -98,7 +98,11 @@ func (chain *FakeChain) Statistic(statistic fcom.Statistic) (*fcom.RemoteStatist
 	return &fcom.RemoteStatistic{}, nil
 }
 
-func (chain *FakeChain) LogStatus() (int64, error) {
+func (chain *FakeChain) LogStartStatus() (int64, error) {
+	return 0, nil
+}
+
+func (chain *FakeChain) LogEndStatus() (int64, error) {
 	return 0, nil
 }
 

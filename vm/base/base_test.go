@@ -49,7 +49,7 @@ func TestBaseVm(t *testing.T) {
 	err = base.AfterRun()
 	assert.NoError(t, err)
 
-	_, err = base.LogStatus()
+	_, err = base.LogEndStatus()
 	assert.NoError(t, err)
 
 	base.Close()

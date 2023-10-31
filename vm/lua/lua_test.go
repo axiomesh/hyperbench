@@ -148,7 +148,7 @@ return case
 	err = vm2.AfterRun()
 	assert.NoError(t, err)
 
-	_, err = vm.LogStatus()
+	_, err = vm.LogEndStatus()
 	assert.NoError(t, err)
 
 	vm.Close()

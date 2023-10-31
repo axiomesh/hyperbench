@@ -16,7 +16,7 @@ function case:BeforeRun()
             result = self.blockchain:Transfer({
                 from = from,
                 to = toAddr,
-                amount = 80,
+                amount = '1000000000000000000000000',
                 extra = "11",
             })
             sleep(0.1)

@@ -33,7 +33,7 @@ func TestLocalMaster(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = localMaster.Statistic(1, 1)
 	assert.NoError(t, err)
-	_, err = localMaster.LogStatus()
+	_, err = localMaster.LogEndStatus()
 	assert.NoError(t, err)
 
 }
