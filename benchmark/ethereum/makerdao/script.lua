@@ -22,7 +22,7 @@ function case:BeforeRun()
             result = self.blockchain:Transfer({
                 from = from,
                 to = toAddr,
-                amount = 100,
+                amount = '1000000000000000000000000',
                 extra = "11",
             })
             sleep(0.1)
@@ -52,17 +52,17 @@ function case:Run()
     -- invoke erc20 contract
     local fromAddr = self.blockchain:GetRandomAccountByGroup()
     local toAddr = self.blockchain:GetRandomAccount(fromAddr)
-    print("from addr:" .. fromAddr)
+    --print("from addr:" .. fromAddr)
     local result
 
-    print("First Call")
+    --print("First Call")
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "ERC20",
         func = "approve",
         args = {"0x7eC62F11970b96E2010F665B15174A47Dd3179B5", 1000},
     })
-    print("ERC20 call result:" .. result.UID)
+    --print("ERC20 call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -70,7 +70,7 @@ function case:Run()
         func = "join",
         args = {fromAddr, 1000},
     })
-    print("GemJoin call result:" .. result.UID)
+    --print("GemJoin call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -78,7 +78,7 @@ function case:Run()
         func = "frob",
         args = {"0x5444535300000000000000000000000000000000000000000000000000000000", fromAddr, fromAddr, fromAddr, 100, 1},
     })
-    print("Vat call result:" .. result.UID)
+    --print("Vat call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -86,7 +86,7 @@ function case:Run()
         func = "hope",
         args = {"0x4c335ac75D0610D9D03926a751A0698d29782f0a"},
     })
-    print("Vat call result:" .. result.UID)
+    --print("Vat call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -94,7 +94,7 @@ function case:Run()
         func = "exit",
         args = {fromAddr, 1},
     })
-    print("DaiJoin call result:" .. result.UID)
+    --print("DaiJoin call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -102,7 +102,7 @@ function case:Run()
         func = "approve",
         args = {"0x4c335ac75D0610D9D03926a751A0698d29782f0a", 1},
     })
-    print("Dai call result:" .. result.UID)
+    --print("Dai call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -110,7 +110,7 @@ function case:Run()
         func = "join",
         args = {fromAddr, 1},
     })
-    print("DaiJoin call result:" .. result.UID)
+    --print("DaiJoin call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -118,7 +118,7 @@ function case:Run()
         func = "frob",
         args = {"0x5444535300000000000000000000000000000000000000000000000000000000", fromAddr, fromAddr, fromAddr, -100, -1},
     })
-    print("Vat call result:" .. result.UID)
+    --print("Vat call result:" .. result.UID)
     self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -126,7 +126,7 @@ function case:Run()
         func = "exit",
         args = {fromAddr, 1000},
     })
-    print("GemJoin call result:" .. result.UID)
+    --print("GemJoin call result:" .. result.UID)
     self.blockchain:Confirm(result)
 
     --print("call result:" .. result.UID)

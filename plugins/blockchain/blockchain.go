@@ -17,8 +17,6 @@ var log *logging.Logger
 func NewBlockchain(clientConfig base.ClientConfig) (client fcom.Blockchain, err error) {
 	clientBase := base.NewBlockchainBase(clientConfig)
 
-	eth.InitEth()
-
 	Client, err := eth.New(clientBase)
 	if err != nil {
 		return nil, err

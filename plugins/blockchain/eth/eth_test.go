@@ -2,11 +2,12 @@ package eth
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"os"
 	"reflect"
 	"strconv"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/meshplus/hyperbench/base"
 	fcom "github.com/meshplus/hyperbench/common"
@@ -189,7 +190,7 @@ func TestTransaction(t *testing.T) {
 	//transfer
 	c, _ = New(b)
 	client = c.(*ETH)
-	res = client.Transfer(fcom.Transfer{From: "74d366e0649a91395bb122c005917644382b9452", To: "74d366e0649a91395bb122c005917644382b9452", Amount: int64(1)})
+	res = client.Transfer(fcom.Transfer{From: "74d366e0649a91395bb122c005917644382b9452", To: "74d366e0649a91395bb122c005917644382b9452", Amount: "1"})
 	assert.Equal(t, res.Status, fcom.Status("success"))
 	// confirm
 	res = client.Confirm(res)
@@ -204,8 +205,7 @@ func TestTransaction(t *testing.T) {
 	res = client.Confirm(res)
 	assert.Equal(t, res.Status, fcom.Status("unknown"))
 
-	client.nonce -= 1
-	res = client.Transfer(fcom.Transfer{From: "74d366e0649a91395bb122c005917644382b9452", To: "74d366e0649a91395bb122c005917644382b9452", Amount: int64(1)})
+	res = client.Transfer(fcom.Transfer{From: "74d366e0649a91395bb122c005917644382b9452", To: "74d366e0649a91395bb122c005917644382b9452", Amount: "1"})
 	assert.Equal(t, res.Status, fcom.Status("failure"))
 
 	defer os.RemoveAll("./benchmark")
@@ -271,7 +271,6 @@ func TestGetRandomAccountByGroup(t *testing.T) {
 	e.engineCap = 6
 	e.wkIdx = 9
 	e.vmIdx = 5
-	e.accCount = 1000000
 
 	accountAddrList = make([]string, 2000000)
 	for i := 0; i < 2000000; i++ {
@@ -293,7 +292,6 @@ func TestGetRandomAccount(t *testing.T) {
 	e.engineCap = 1
 	e.wkIdx = 0
 	e.vmIdx = 0
-	e.accCount = 1000
 
 	accountAddrList = make([]string, 1000)
 	for i := 0; i < 1000; i++ {

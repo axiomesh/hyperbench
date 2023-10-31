@@ -179,9 +179,14 @@ func (v *VM) Statistic(from, to int64) (*fcom.RemoteStatistic, error) {
 	})
 }
 
-// LogStatus records blockheight and time
-func (v *VM) LogStatus() (end int64, err error) {
-	return v.client.LogStatus()
+// LogStartStatus records start blockheight and time
+func (v *VM) LogStartStatus() (end int64, err error) {
+	return v.client.LogStartStatus()
+}
+
+// LogEndStatus records end blockheight and time
+func (v *VM) LogEndStatus() (end int64, err error) {
+	return v.client.LogEndStatus()
 }
 
 // BeforeSet will call before set context.
@@ -274,7 +279,7 @@ func (v *VM) setPlugins(table *lua.LTable) (err error) {
 		ContractName: contractName,
 		ContractNum:  contractNum,
 		//Args:         args,
-		Options:      options,
+		Options: options,
 	})
 
 	if err != nil {

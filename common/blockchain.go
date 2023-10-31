@@ -39,8 +39,11 @@ type Blockchain interface {
 	// nanosecond-level timestamps `from` and `to`
 	Statistic(statistic Statistic) (*RemoteStatistic, error)
 
-	// LogStatus records blockheight and time
-	LogStatus() (int64, error)
+	// LogStartStatus records start blockheight and time
+	LogStartStatus() (int64, error)
+
+	// LogEndStatus records end blockheight and time
+	LogEndStatus() (int64, error)
 
 	// GetRandomAccount get random account except addr
 	GetRandomAccount(addr string) string

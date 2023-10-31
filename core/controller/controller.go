@@ -119,14 +119,18 @@ func (l *ControllerImpl) Run() (err error) {
 	for _, w := range l.workerClients {
 		w.worker.BeforeRun()
 	}
+
 	// run all workers
 	duration := viper.GetDuration(fcom.EngineDurationPath)
-	l.start = time.Now().UnixNano()
+	l.start, err = l.master.LogStartStatus()
+	if err != nil {
+		l.logger.Error(err)
+	}
 	tick := time.NewTicker(duration)
 	go func() {
 		for {
 			<-tick.C
-			l.end, err = l.master.LogStatus()
+			l.end, err = l.master.LogEndStatus()
 			if err != nil {
 				l.logger.Error(err)
 			}
@@ -146,14 +150,17 @@ func (l *ControllerImpl) Run() (err error) {
 	}
 
 	l.recorder.Release()
-	// afterRun
-	for _, w := range l.workerClients {
-		w.worker.AfterRun()
-	}
+
 	sd, err := l.master.Statistic(l.start, l.end)
 	if err != nil {
 		l.logger.Notice(err)
 	}
+
+	// afterRun
+	for _, w := range l.workerClients {
+		w.worker.AfterRun()
+	}
+
 	if err == nil {
 		totalSent, totalMissed := int64(0), int64(0)
 		for _, w := range l.workerClients {

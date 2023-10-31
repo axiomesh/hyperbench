@@ -29,7 +29,6 @@ import (
 
 const gasLimit = 300000
 const sep = "\n"
-const valuefactor = 100000000000000000
 
 // Contract contains the abi and bin files of contract
 type Contract struct {
@@ -180,11 +179,7 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 	auth.Value = big.NewInt(0)       // in wei
 	auth.GasLimit = uint64(gasLimit) // in units
 	auth.GasPrice = gasPrice
-	startBlock, err := ethClient.HeaderByNumber(context.Background(), nil)
-	if err != nil {
-		log.Errorf("get number of headerblock failed: %v", err)
-		return nil, err
-	}
+
 	workerNum := uint64(len(viper.GetStringSlice(fcom.EngineURLsPath)))
 	if workerNum == 0 {
 		workerNum = 1
@@ -199,7 +194,6 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 		auth:           auth,
 		chainID:        chainID,
 		gasPrice:       gasPrice,
-		startBlock:     startBlock.Number.Uint64(),
 		round:          0,
 		engineCap:      viper.GetUint64(fcom.EngineCapPath),
 		workerNum:      workerNum,
@@ -416,17 +410,22 @@ func (e *ETH) Confirm(result *fcom.Result, ops ...fcom.Option) *fcom.Result {
 		result.Label == fcom.InvalidLabel {
 		return result
 	}
+	var errors []error
 	for i := 1; i <= 5; i++ {
 		tx, err := e.ethClient.TransactionReceipt(context.Background(), common.HexToHash(result.UID))
 		result.ConfirmTime = time.Now().UnixNano()
 		if err != nil || tx == nil {
-			e.Logger.Warningf("query failed: %v", err)
+			errors = append(errors, err)
 			result.Status = fcom.Unknown
 			time.Sleep(500 * time.Millisecond)
 			continue
 		}
 		result.Status = fcom.Confirm
 		break
+	}
+
+	if result.Status == fcom.Failure || result.Status == fcom.Unknown {
+		e.Logger.Errorf("Confirm error: %+v", errors)
 	}
 
 	return result
@@ -446,9 +445,11 @@ func (e *ETH) Transfer(args fcom.Transfer, ops ...fcom.Option) (result *fcom.Res
 		return e.handleErr()
 	}
 
-	value := big.NewInt(args.Amount)
-	// value too small, mul a factor
-	value.Mul(value, big.NewInt(valuefactor))
+	value, ok := new(big.Int).SetString(args.Amount, 10)
+	if !ok {
+		e.Logger.Error("value format error, can't convert to big.Int")
+		return e.handleErr()
+	}
 
 	toAddress := common.HexToAddress(args.To)
 	data := []byte(args.Extra)
@@ -565,13 +566,26 @@ func (e *ETH) Statistic(statistic fcom.Statistic) (*fcom.RemoteStatistic, error)
 	return statisticData, nil
 }
 
-// LogStatus records blockheight and time
-func (e *ETH) LogStatus() (end int64, err error) {
+// LogStartStatus records start blockheight and time
+func (e *ETH) LogStartStatus() (start int64, err error) {
+	blockInfo, err := e.ethClient.HeaderByNumber(context.Background(), nil)
+	if err != nil {
+		return 0, err
+	}
+	e.startBlock = blockInfo.Number.Uint64()
+	e.Logger.Infof("Log start block number: %d", e.startBlock)
+	start = time.Now().UnixNano()
+	return start, err
+}
+
+// LogEndStatus records end blockheight and time
+func (e *ETH) LogEndStatus() (end int64, err error) {
 	blockInfo, err := e.ethClient.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		return 0, err
 	}
 	e.endBlock = blockInfo.Number.Uint64()
+	e.Logger.Infof("Log end block number: %d", e.endBlock)
 	end = time.Now().UnixNano()
 	return end, err
 }

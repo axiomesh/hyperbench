@@ -77,8 +77,13 @@ func (b *BlockchainBase) Statistic(statistic common.Statistic) (*common.RemoteSt
 	return &common.RemoteStatistic{}, nil
 }
 
-// LogStatus records blockheight and time
-func (b *BlockchainBase) LogStatus() (int64, error) {
+// LogStartStatus records start blockheight and time
+func (b *BlockchainBase) LogStartStatus() (int64, error) {
+	return 0, nil
+}
+
+// LogEndStatus records end blockheight and time
+func (b *BlockchainBase) LogEndStatus() (int64, error) {
 	return 0, nil
 }
 

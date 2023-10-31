@@ -23,8 +23,11 @@ type Master interface {
 	// Statistic query the remote statistic data from chain
 	Statistic(from, to int64) (*fcom.RemoteStatistic, error)
 
-	// LogStatus records blockheight and time
-	LogStatus() (int64, error)
+	// LogStartStatus records start blockheight and time
+	LogStartStatus() (int64, error)
+
+	// LogEndStatus records end blockheight and time
+	LogEndStatus() (int64, error)
 }
 
 // LocalMaster is the implement of master in local
@@ -63,9 +66,14 @@ func (m *LocalMaster) Statistic(from, to int64) (*fcom.RemoteStatistic, error) {
 	return m.masterVM.Statistic(from, to)
 }
 
-// LogStatus records blockheight and time
-func (m *LocalMaster) LogStatus() (end int64, err error) {
-	return m.masterVM.LogStatus()
+// LogStartStatus records start blockheight and time
+func (m *LocalMaster) LogStartStatus() (end int64, err error) {
+	return m.masterVM.LogStartStatus()
+}
+
+// LogEndStatus records end blockheight and time
+func (m *LocalMaster) LogEndStatus() (end int64, err error) {
+	return m.masterVM.LogEndStatus()
 }
 
 // NewLocalMaster create LocalMaster.
