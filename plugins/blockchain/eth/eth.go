@@ -160,11 +160,8 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 		return nil, err
 	}
 
-	gasPrice, err := ethClient.SuggestGasPrice(context.Background())
-	if err != nil {
-		log.Errorf("generate gasprice failed: %v", err)
-		return nil, err
-	}
+	gasPrice := big.NewInt(10000000000000)
+
 	chainID, err := ethClient.NetworkID(context.Background())
 	if err != nil {
 		log.Errorf("get chainID failed: %v", err)
@@ -287,12 +284,6 @@ func (e *ETH) Invoke(invoke fcom.Invoke, ops ...fcom.Option) *fcom.Result {
 	// e.round++
 	// e.auth.Nonce = big.NewInt(int64(nonce))
 
-	gasPrice, err := e.ethClient.SuggestGasPrice(context.Background())
-	if err != nil {
-		e.Logger.Errorf("generate gasprice failed: %v", err)
-		return e.handleErr()
-	}
-
 	priKey := accounts[invoke.Caller]
 	auth, err := bind.NewKeyedTransactorWithChainID(priKey, e.chainID)
 	if err != nil {
@@ -307,9 +298,9 @@ func (e *ETH) Invoke(invoke fcom.Invoke, ops ...fcom.Option) *fcom.Result {
 		return e.handleErr()
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)       // in wei
-	auth.GasLimit = uint64(gasLimit) // in units
-	auth.GasPrice = gasPrice
+	auth.Value = big.NewInt(0)                 // in wei
+	auth.GasLimit = uint64(gasLimit)           // in units
+	auth.GasPrice = big.NewInt(10000000000000) // max_gas_price
 
 	if e.op.setGas {
 		auth.GasPrice = e.op.gas
@@ -507,7 +498,6 @@ func (e *ETH) Transfer(args fcom.Transfer, ops ...fcom.Option) (result *fcom.Res
 
 // SetContext set test group context in go client
 func (e *ETH) SetContext(context string) error {
-	e.Logger.Debugf("prepare msg: %v", context)
 	msg := &Msg{}
 
 	if context == "" {

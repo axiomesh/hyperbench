@@ -1,8 +1,8 @@
 [engine]
-rate = 3                      # 速率，重点压测指标
-duration = "336h"                # 持续时间
-cap = 1                        # 客户端虚拟机数量，类似CPU核心数
-accounts = 1                # 总账户数
+rate = 100                      # 速率，重点压测指标
+duration = "200h"                # 持续时间
+cap = 100                        # 客户端虚拟机数量，类似CPU核心数
+accounts = 2000000               # 总账户数
 
 # uniswap 稳定性测试配置
 [client]
