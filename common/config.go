@@ -44,9 +44,6 @@ const (
 	ClientTypePath         = "client.type"
 	ClientConfigPath       = "client.config"
 	ClientContractPath     = "client.contract"
-	ClientContractNum      = "client.contract_num"
-	ClientContractName     = "client.contract_name"
-	ClientContractArgsPath = "client.args"
 	ClientOptionPath       = "client.options"
 	ClientPluginPath       = "client.plugin"
 )

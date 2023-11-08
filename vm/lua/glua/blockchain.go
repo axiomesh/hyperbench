@@ -217,12 +217,33 @@ func checkBlockChainByIdx(state *lua.LState, idx int) bool {
 
 func deployContractLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
 	return L.NewFunction(func(state *lua.LState) int {
-		err := client.DeployContract()
+		argIndex := 1
+		// check first arg is fcom.Blockchain
+		if checkBlockChainByIdx(state, argIndex) {
+			argIndex++
+		}
+
+		addr := state.CheckString(argIndex)
+		argIndex++
+		contractName := state.CheckString(argIndex)
+
+		var args []any
+		for i := 1 + argIndex; i <= state.GetTop(); i++ {
+			luaValue := state.CheckAny(i)
+			arg, err := Lua2Go(luaValue)
+			if err != nil {
+				state.ArgError(1, fmt.Sprintf("argument %d error", i))
+			}
+			args = append(args, arg)
+		}
+
+		contractAddr, err := client.DeployContract(addr, contractName, args...)
 		if err != nil {
+			state.Push(lua.LString(""))
 			state.Push(lua.LString(err.Error()))
 			return 1
 		}
-		state.Push(lua.LString(""))
+		state.Push(lua.LString(contractAddr))
 		return 1
 	})
 }

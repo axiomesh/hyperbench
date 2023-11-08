@@ -3,7 +3,6 @@ package eth
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -27,16 +26,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-const gasLimit = 300000
-const sep = "\n"
+const (
+	maxGasPrice = 10000000000000
+	gasLimit    = 300000
+	sep         = "\n"
+)
 
 // Contract contains the abi and bin files of contract
 type Contract struct {
-	Name            string
-	ABI             string
-	BIN             string
-	parsedAbi       abi.ABI
-	contractAddress []common.Address
+	Name      string
+	ABI       string
+	BIN       string
+	parsedAbi abi.ABI
 }
 
 type option struct {
@@ -82,14 +83,10 @@ func (nm *NonceMgr) subNonce(addr common.Address) {
 type ETH struct {
 	*base.BlockchainBase
 	ethClient  *ethclient.Client
-	privateKey *ecdsa.PrivateKey
-	publicKey  *ecdsa.PublicKey
-	auth       *bind.TransactOpts
 	startBlock uint64
 	endBlock   uint64
 	chainID    *big.Int
 	gasPrice   *big.Int
-	round      uint64
 	engineCap  uint64
 	workerNum  uint64
 	wkIdx      uint64
@@ -104,11 +101,8 @@ type Msg struct {
 }
 
 var (
-	lock            sync.RWMutex
 	accounts        map[string]*ecdsa.PrivateKey
 	accountAddrList []string
-	PrivateK        *ecdsa.PrivateKey
-	fromAddress     common.Address
 	contracts       map[string]Contract
 	nonceMgr        NonceMgr
 	accountCount    uint64
@@ -127,22 +121,34 @@ func InitEth() {
 	}
 
 	accounts = make(map[string]*ecdsa.PrivateKey)
-	for i, file := range files {
+	for _, file := range files {
 		fileName := file.Name()
 		accountAddrList, accounts, err = KeystoreToPrivateKey(configPath+"/keystore/"+fileName, cast.ToString(options["keypassword"]))
 		if err != nil {
 			log.Errorf("access account file failed: %v", err)
 			return
 		}
-
-		if i == 0 {
-			addr := accountAddrList[0]
-			PrivateK = accounts[addr]
-
-			fromAddress = common.HexToAddress(addr)
-		}
 	}
 
+	contractPath := viper.GetString(fcom.ClientContractPath)
+	if contractPath != "" {
+		contracts, err = newContract(contractPath)
+		if err != nil {
+			log.Errorf("initiate contract failed: %v", err)
+			return
+		}
+
+		for name, contract := range contracts {
+			parsed, err := abi.JSON(strings.NewReader(contract.ABI))
+			if err != nil {
+				log.Errorf("decode abi of contract failed: %v", err)
+				return
+			}
+			contract.parsedAbi = parsed
+			// update contract
+			contracts[name] = contract
+		}
+	}
 }
 
 // New use given blockchainBase create ETH.
@@ -160,22 +166,13 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 		return nil, err
 	}
 
-	gasPrice := big.NewInt(10000000000000)
+	gasPrice := big.NewInt(maxGasPrice)
 
 	chainID, err := ethClient.NetworkID(context.Background())
 	if err != nil {
 		log.Errorf("get chainID failed: %v", err)
 		return nil, err
 	}
-	auth, err := bind.NewKeyedTransactorWithChainID(PrivateK, chainID)
-	if err != nil {
-		log.Errorf("generate transaction options failed: %v", err)
-		return nil, err
-	}
-	auth.Nonce = big.NewInt(0)       // init nonce
-	auth.Value = big.NewInt(0)       // in wei
-	auth.GasLimit = uint64(gasLimit) // in units
-	auth.GasPrice = gasPrice
 
 	workerNum := uint64(len(viper.GetStringSlice(fcom.EngineURLsPath)))
 	if workerNum == 0 {
@@ -187,11 +184,8 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 	client = &ETH{
 		BlockchainBase: blockchainBase,
 		ethClient:      ethClient,
-		privateKey:     PrivateK,
-		auth:           auth,
 		chainID:        chainID,
 		gasPrice:       gasPrice,
-		round:          0,
 		engineCap:      viper.GetUint64(fcom.EngineCapPath),
 		workerNum:      workerNum,
 		vmIdx:          vmIdx,
@@ -203,88 +197,70 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 	}
 	return
 }
-func (e *ETH) DeployContract() error {
-	lock.Lock()
-	defer lock.Unlock()
+func (e *ETH) DeployContract(addr, contractName string, args ...any) (string, error) {
+	// convert args
+	deployArgs := e.convertArgs(args)
+	e.Logger.Infof("deploy args: %+v", deployArgs)
 
-	if e.BlockchainBase.ContractPath != "" {
-		var er error
-		contracts, er = newContract(e.BlockchainBase.ContractPath)
-		if er != nil {
-			e.Logger.Errorf("initiate contract failed: %v", er)
-			return er
-		}
-	} else {
-		return nil
+	// deploy contract
+	deployContract, ok := contracts[contractName]
+	if !ok {
+		e.Logger.Errorf("deploy contract: %s not found", contractName)
+		return "", fmt.Errorf("contract name: %s not found in contract directory", contractName)
 	}
 
-	for name, contract := range contracts {
-		parsed, err := abi.JSON(strings.NewReader(contract.ABI))
-		if err != nil {
-			e.Logger.Errorf("decode abi of contract failed: %v", err)
-			return err
-		}
-		contract.parsedAbi = parsed
-		// update contract
-		contracts[name] = contract
+	account, ok := accounts[addr]
+	if !ok {
+		e.Logger.Errorf("deploy contract error, the account %s not exist", addr)
+		return "", fmt.Errorf("deploy contract %s error", contractName)
 	}
 
-	// deploy contract num is contractNum for specified contract
-	if e.ContractName != "" {
-		deployContract, ok := contracts[e.ContractName]
-		if !ok {
-			e.Logger.Errorf("deploy contract: %s not found", e.ContractName)
-			return fmt.Errorf("contract name: %s not found in contract directory", e.ContractName)
-		}
+	auth, err := bind.NewKeyedTransactorWithChainID(account, e.chainID)
+	if err != nil {
+		e.Logger.Errorf("generate transaction options failed: %v", err)
+		return "", err
+	}
+	auth.Value = big.NewInt(0)       // in wei
+	auth.GasLimit = uint64(gasLimit) // in units
+	auth.GasPrice = e.gasPrice
 
-		for i := 0; i < int(e.ContractNum); i++ {
-			e.auth.GasPrice = nil
-			e.auth.GasLimit = 0
-			nonce, err := nonceMgr.getNonceAndAdd(e.ethClient, fromAddress)
-			if err != nil {
-				e.Logger.Errorf("get nonce failed: %v", err)
-				return err
-			}
-			e.auth.Nonce.Set(big.NewInt(int64(nonce)))
+	accountAddr := common.HexToAddress(addr)
+	nonce, err := nonceMgr.getNonceAndAdd(e.ethClient, accountAddr)
+	if err != nil {
+		e.Logger.Errorf("get nonce failed: %v", err)
+		return "", err
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
 
-			contractAddress, _, _, err := bind.DeployContract(e.auth, deployContract.parsedAbi, common.FromHex(deployContract.BIN), e.ethClient, e.Args...)
-			if err != nil {
-				e.Logger.Errorf("deploycontract failed: %v", err)
-				nonceMgr.subNonce(fromAddress)
-				continue
-			}
-
-			deployContract.contractAddress = append(deployContract.contractAddress, contractAddress)
-			// update contract
-			contracts[e.ContractName] = deployContract
-			e.Logger.Infof("deploy contract: %s success, address: %s", e.ContractName, contractAddress)
-		}
+	contractAddress, _, _, err := bind.DeployContract(auth, deployContract.parsedAbi, common.FromHex(deployContract.BIN), e.ethClient, deployArgs...)
+	if err != nil {
+		e.Logger.Errorf("deploycontract failed: %v", err)
+		nonceMgr.subNonce(accountAddr)
+		return "", err
 	}
 
-	return nil
+	e.Logger.Infof("deploy contract: %s success, address: %s", contractName, contractAddress)
+
+	return contractAddress.String(), nil
 }
 
 // Invoke invoke contract with funcName and args in eth network
 func (e *ETH) Invoke(invoke fcom.Invoke, ops ...fcom.Option) *fcom.Result {
-	lock.RLock()
-	defer lock.RUnlock()
-
 	contract, ok := contracts[invoke.Contract]
 	if !ok {
 		e.Logger.Errorf("invoke error, no this contract: %s", invoke.Contract)
 		return e.handleErr()
 	}
 
-	// invoke random contract address by the contract
-	index := rand.Intn(len(contract.contractAddress))
-	contractAddress := contract.contractAddress[index]
+	contractAddress := common.HexToAddress(invoke.ContractAddr)
 
 	instance := bind.NewBoundContract(contractAddress, contract.parsedAbi, e.ethClient, e.ethClient, e.ethClient)
-	// nonce := e.nonce + (e.wkIdx+e.round*e.workerNum)*(e.engineCap/e.workerNum) + e.vmIdx + 1
-	// e.round++
-	// e.auth.Nonce = big.NewInt(int64(nonce))
 
-	priKey := accounts[invoke.Caller]
+	priKey, ok := accounts[invoke.Caller]
+	if !ok {
+		e.Logger.Errorf("invoke error, not found this account: %s", invoke.Caller)
+		return e.handleErr()
+	}
 	auth, err := bind.NewKeyedTransactorWithChainID(priKey, e.chainID)
 	if err != nil {
 		e.Logger.Errorf("generate transaction options failed: %v", err)
@@ -298,9 +274,9 @@ func (e *ETH) Invoke(invoke fcom.Invoke, ops ...fcom.Option) *fcom.Result {
 		return e.handleErr()
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)                 // in wei
-	auth.GasLimit = uint64(gasLimit)           // in units
-	auth.GasPrice = big.NewInt(10000000000000) // max_gas_price
+	auth.Value = big.NewInt(0)              // in wei
+	auth.GasLimit = uint64(gasLimit)        // in units
+	auth.GasPrice = big.NewInt(maxGasPrice) // max_gas_price
 
 	if e.op.setGas {
 		auth.GasPrice = e.op.gas
@@ -424,11 +400,6 @@ func (e *ETH) Confirm(result *fcom.Result, ops ...fcom.Option) *fcom.Result {
 
 // Transfer transfer a amount of money from a account to the other one
 func (e *ETH) Transfer(args fcom.Transfer, ops ...fcom.Option) (result *fcom.Result) {
-	lock.RLock()
-	defer lock.RUnlock()
-
-	// nonce := e.nonce + (e.wkIdx+e.round*e.workerNum)*(e.engineCap/e.workerNum) + e.vmIdx
-	// e.round++
 	from := common.HexToAddress(args.From)
 	nonce, err := nonceMgr.getNonceAndAdd(e.ethClient, from)
 	if err != nil {
@@ -491,37 +462,12 @@ func (e *ETH) Transfer(args fcom.Transfer, ops ...fcom.Option) (result *fcom.Res
 		BuildTime: buildTime,
 		SendTime:  sendTime,
 	}
-	//e.Logger.Infof("transfer result: %+v", ret)
 
 	return ret
 }
 
 // SetContext set test group context in go client
 func (e *ETH) SetContext(context string) error {
-	msg := &Msg{}
-
-	if context == "" {
-		e.Logger.Infof("Prepare nothing")
-		return nil
-	}
-
-	err := json.Unmarshal([]byte(context), msg)
-	if err != nil {
-		e.Logger.Errorf("can not unmarshal msg: %v \n err: %v", context, err)
-		return err
-	}
-
-	//set contract address
-	lock.Lock()
-	defer lock.Unlock()
-
-	contract, ok := contracts[msg.ContractName]
-	if !ok {
-		e.Logger.Errorf("not found this contract: %s", msg.ContractName)
-		return fmt.Errorf("not found this contract: %s", msg.ContractName)
-	}
-	contract.contractAddress = []common.Address{common.HexToAddress(msg.ContractAddr)}
-	contracts[msg.ContractName] = contract
 	return nil
 }
 
@@ -582,9 +528,6 @@ func (e *ETH) LogEndStatus() (end int64, err error) {
 
 // GetRandomAccount get random account except addr
 func (e *ETH) GetRandomAccount(addr string) string {
-	lock.RLock()
-	defer lock.RUnlock()
-
 	accountAddr := strings.TrimPrefix(addr, "0x")
 	randomNumber := rand.Int63n(int64(accountCount))
 
@@ -597,17 +540,11 @@ func (e *ETH) GetRandomAccount(addr string) string {
 }
 
 func (e *ETH) GetAccount(index uint64) string {
-	lock.RLock()
-	defer lock.RUnlock()
-
 	return accountAddrList[index]
 }
 
 // GetRandomAccountByGroup get random account by group
 func (e *ETH) GetRandomAccountByGroup() string {
-	lock.RLock()
-	defer lock.RUnlock()
-
 	// total group
 	totalGroup := e.workerNum * e.engineCap
 	// my group
@@ -663,19 +600,7 @@ func (e *ETH) Option(options fcom.Option) error {
 
 // GetContractAddrByName get contract addr by name
 func (e *ETH) GetContractAddrByName(contractName string) string {
-	lock.RLock()
-	defer lock.RUnlock()
-
-	contract, exists := contracts[contractName]
-	if !exists {
-		return ""
-	}
-
-	if len(contract.contractAddress) == 0 {
-		return ""
-	}
-
-	return contract.contractAddress[0].String()
+	return ""
 }
 
 func (e *ETH) handleErr() *fcom.Result {

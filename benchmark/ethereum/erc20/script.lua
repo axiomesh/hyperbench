@@ -1,7 +1,12 @@
 local case = testcase.new()
+local contractAddr 
 
 function sleep(n)
     os.execute("sleep " .. tonumber(n))
+end
+
+function case:DeployContract()
+    contractAddr = self.blockchain:DeployContract("9965507D1a55bcC2695C58ba16FB37d819B0A4dc", "ERC20")
 end
 
 function case:BeforeRun()
@@ -36,6 +41,7 @@ function case:BeforeRun()
         result = self.blockchain:Invoke({
             caller = fromAddr,
             contract = "ERC20", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = contractAddr,
             func = "mint",
             args = {10000000000},
         })
@@ -63,6 +69,7 @@ function case:Run()
         result = self.blockchain:Invoke({
             caller = fromAddr,
             contract = "ERC20",
+            contract_addr = contractAddr,
             func = "transfer",
             args = {toAddr, value},
         })
@@ -73,12 +80,14 @@ function case:Run()
         result = self.blockchain:Invoke({
             caller = fromAddr,
             contract = "ERC20",
+            contract_addr = contractAddr,
             func = "approve",
             args = {fromAddr2, value},
         })
         result = self.blockchain:Invoke({
             caller = fromAddr2,
             contract = "ERC20",
+            contract_addr = contractAddr,
             func = "transferFrom",
             args = {fromAddr, toAddr, value},
         })

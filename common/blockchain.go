@@ -4,7 +4,7 @@ package common
 type Blockchain interface {
 
 	// DeployContract should deploy contract with config file
-	DeployContract() error
+	DeployContract(addr, contractName string, args ...any) (string, error)
 
 	// Invoke just invoke the contract
 	Invoke(Invoke, ...Option) *Result
