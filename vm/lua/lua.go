@@ -150,7 +150,13 @@ func (v *VM) BeforeDeploy() error {
 
 // DeployContract deploy contract.
 func (v *VM) DeployContract() error {
-	return v.client.DeployContract()
+	fn := v.instance.RawGetString(deployContract)
+	if fn != lua.LNil {
+		return v.vm.CallByParam(lua.P{
+			Fn: fn,
+		}, v.instance)
+	}
+	return nil
 }
 
 // BeforeGet will call before get context.
@@ -265,8 +271,6 @@ func (v *VM) setPlugins(table *lua.LTable) (err error) {
 
 	clientType, clientConfigPath := viper.GetString(fcom.ClientTypePath), viper.GetString(fcom.ClientConfigPath)
 	contractPath := viper.GetString(fcom.ClientContractPath)
-	contractNum := viper.GetUint64(fcom.ClientContractNum)
-	contractName := viper.GetString(fcom.ClientContractName)
 	//args := viper.GetStringSlice(fcom.ClientContractArgsPath)
 	options := viper.GetStringMap(fcom.ClientOptionPath)
 	options["vmIdx"] = v.index.VM
@@ -276,9 +280,6 @@ func (v *VM) setPlugins(table *lua.LTable) (err error) {
 		ClientType:   clientType,
 		ConfigPath:   clientConfigPath,
 		ContractPath: contractPath,
-		ContractName: contractName,
-		ContractNum:  contractNum,
-		//Args:         args,
 		Options: options,
 	})
 

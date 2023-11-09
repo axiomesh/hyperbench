@@ -2,17 +2,14 @@
 rate = 150
 duration = "200h"
 cap = 20
-accounts = 2000000
+accounts = 100
 
 [client]
 script = "benchmark/ethereum/erc20/script.lua"     # 脚本
 type = "eth"                                        # 区块链类型
 contract = "benchmark/ethereum/erc20/contract"     # 合约目录路径
-contract_name = "ERC20"                            # 部署合约的名称
-contract_num = 1                                  # 合约部署数量
 config = "benchmark/ethereum/erc20/eth"            # 区块链SDK配置路径
 plugin = "./eth.so"                                 # 插件路径
-args = []                                           # 合约参数路径
 
 [client.options] # 客户端选项
 

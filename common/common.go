@@ -2,17 +2,18 @@ package common
 
 // Invoke define need filed for invoke contract.
 type Invoke struct {
-	Caller   string        `mapstructure:"caller"`
-	Contract string        `mapstructure:"contract"`
-	Func     string        `mapstructure:"func"`
-	Args     []interface{} `mapstructure:"args"`
+	Caller       string        `mapstructure:"caller"`
+	Contract     string        `mapstructure:"contract"`
+	ContractAddr string        `mapstructure:"contract_addr"`
+	Func         string        `mapstructure:"func"`
+	Args         []interface{} `mapstructure:"args"`
 }
 
 // Transfer define need filed for transfer.
 type Transfer struct {
 	From   string `mapstructure:"from"`
 	To     string `mapstructure:"to"`
-	Amount string  `mapstructure:"amount"`
+	Amount string `mapstructure:"amount"`
 	Extra  string `mapstructure:"extra"`
 }
 

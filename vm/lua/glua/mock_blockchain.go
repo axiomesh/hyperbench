@@ -30,9 +30,9 @@ func NewMock() (client *FakeChain, err error) {
 	}, nil
 }
 
-func (chain *FakeChain) DeployContract() error {
+func (chain *FakeChain) DeployContract(addr, contractName string, args ...any) (string, error) {
 	chain.tempData[DeployContract] = DeployContract
-	return nil
+	return "0x79a1215469FaB6f9c63c1816b45183AD3624bE34", nil
 }
 
 func (chain *FakeChain) Invoke(invoke fcom.Invoke, ops ...fcom.Option) *fcom.Result {

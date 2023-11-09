@@ -19,9 +19,6 @@ type ClientConfig struct {
 
 	// contract
 	ContractPath string        `mapstructure:"contract"`
-	Args         []interface{} `mapstructure:"args"`
-	ContractNum  uint64        `mapstructure:"contract_num"`
-	ContractName string        `mapstructure:"contract_name"`
 
 	// options
 	Options map[string]interface{} `mapstructure:"options"`
