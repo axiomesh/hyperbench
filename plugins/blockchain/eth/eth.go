@@ -28,7 +28,7 @@ import (
 
 const (
 	maxGasPrice = 10000000000000
-	gasLimit    = 300000
+	gasLimit    = 3000000
 	sep         = "\n"
 )
 
@@ -197,6 +197,11 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 	}
 	return
 }
+
+func (e *ETH) GetChainID() uint64 {
+	return e.chainID.Uint64()
+}
+
 func (e *ETH) DeployContract(addr, contractName string, args ...any) (string, error) {
 	// convert args
 	deployArgs := e.convertArgs(args)
@@ -320,6 +325,9 @@ func (e *ETH) convertArgs(args []interface{}) []interface{} {
 		case reflect.Float64:
 			argFloat := arg.(float64)
 			dstArgs = append(dstArgs, big.NewInt(int64(argFloat)))
+		case reflect.Uint64:
+			argUint64 := arg.(uint64)
+			dstArgs = append(dstArgs, big.NewInt(int64(argUint64)))
 		case reflect.String:
 			argStr := arg.(string)
 			str := strings.TrimPrefix(argStr, "0x")
@@ -332,7 +340,13 @@ func (e *ETH) convertArgs(args []interface{}) []interface{} {
 				copy(data[:], addr)
 				dstArgs = append(dstArgs, data)
 			} else {
-				dstArgs = append(dstArgs, arg)
+				// try convert to big int
+				i, ok := new(big.Int).SetString(argStr, 10)
+				if ok {
+					dstArgs = append(dstArgs, i)
+				} else {
+					dstArgs = append(dstArgs, arg)
+				}
 			}
 		case reflect.Slice:
 			argSlice := arg.([]interface{})

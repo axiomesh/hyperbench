@@ -2,6 +2,8 @@ package common
 
 // Blockchain define the service need provided in blockchain.
 type Blockchain interface {
+	// GetChainID get chain id
+	GetChainID() uint64
 
 	// DeployContract should deploy contract with config file
 	DeployContract(addr, contractName string, args ...any) (string, error)

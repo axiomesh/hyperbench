@@ -9,6 +9,7 @@ import (
 
 func newBlockchain(L *lua.LState, client fcom.Blockchain) lua.LValue {
 	clientTable := L.NewTable()
+	clientTable.RawSetString("GetChainID", getChainIDLuaFunction(L, client))
 	clientTable.RawSetString("DeployContract", deployContractLuaFunction(L, client))
 	clientTable.RawSetString("Invoke", invokeLuaFunction(L, client))
 	clientTable.RawSetString("Transfer", transferLuaFunction(L, client))
@@ -208,8 +209,8 @@ func checkBlockChainByIdx(state *lua.LState, idx int) bool {
 	if !ok {
 		return false
 	}
-	k, _ := lvalue.Next(lua.LString("Invok"))
-	if k.String() != "Invoke" {
+	v := lvalue.RawGetString("GetChainID")
+	if v == lua.LNil {
 		return false
 	}
 	return true
@@ -222,7 +223,6 @@ func deployContractLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunc
 		if checkBlockChainByIdx(state, argIndex) {
 			argIndex++
 		}
-
 		addr := state.CheckString(argIndex)
 		argIndex++
 		contractName := state.CheckString(argIndex)
@@ -257,6 +257,20 @@ func getContractAddrByNameLuaFunction(L *lua.LState, client fcom.Blockchain) *lu
 		text := state.CheckString(firstArgIndex)
 		addr := client.GetContractAddrByName(text)
 		state.Push(lua.LString(addr))
+		return 1
+	})
+}
+
+func getChainIDLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
+	return L.NewFunction(func(state *lua.LState) int {
+		argIndex := 1
+		// check first arg is fcom.Blockchain
+		if checkBlockChainByIdx(state, argIndex) {
+			argIndex++
+		}
+
+		chainID := client.GetChainID()
+		state.Push(lua.LNumber(chainID))
 		return 1
 	})
 }
