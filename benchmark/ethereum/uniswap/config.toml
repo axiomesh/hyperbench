@@ -9,17 +9,14 @@ accounts = 2000000               # 总账户数
 script = "benchmark/ethereum/uniswap/script.lua"     # 脚本
 type = "eth"                                         # 区块链类型
 contract = "benchmark/ethereum/uniswap/contract"     # 合约目录
-contract_num = 1                                     # 合约部署数量
 config = "benchmark/ethereum/uniswap/eth"            # 区块链SDK配置路径
-plugin = "./eth.so"                                  # 插件路径
-args = []
 
 [client.options] # 客户端选项
 
 [recorder.log]
 dump=false
 dir="./logs"
-level="debug"
+level="info"
 
 [recorder.csv]
 dir="./csv"
