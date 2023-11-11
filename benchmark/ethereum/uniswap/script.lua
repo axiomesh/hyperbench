@@ -1,15 +1,50 @@
 local case = testcase.new()
+local contractTable = {}
+local maxDeployContractNum = 1
+local faucet = "a0Ee7A142d267C1f36714E4a8F75612F20a79720"
+local receive = "264e23168e80f15e9311F2B88b4D7abeAba47E54"
+local transferMaxValue = "1000000000000000000000000"
+local transferValueEveryRun = "100000000000000000000"
 
 function sleep(n)
     os.execute("sleep " .. tonumber(n))
 end
 
 function case:BeforeRun()
-    self.blockchain:SetContext('{"contract_name": "UniswapV2Router02", "contract_addr": "0x0cA404feA82e87eC4e0A1c3E6F558124b327fE1c"}')
-    local faucet = "a0Ee7A142d267C1f36714E4a8F75612F20a79720"
     if self.index.Accounts < 2 then
         error("Accounts number must be at least 2")
     end
+
+    for i = 1, maxDeployContractNum do
+        local table = {}
+        uniswapV2FactoryAddr = self.blockchain:DeployContract(faucet, "UniswapV2Factory", receive)
+        if uniswapV2FactoryAddr ~= "" then
+            table["UniswapV2Factory"] = uniswapV2FactoryAddr
+        end
+        wETH9Addr = self.blockchain:DeployContract(faucet, "WETH9")
+        if wETH9Addr ~= "" then
+            table["WETH9"] = wETH9Addr
+        end
+        uniswapV2Router02Addr = self.blockchain:DeployContract(faucet, "UniswapV2Router02", uniswapV2FactoryAddr, wETH9Addr)
+        if uniswapV2Router02Addr ~= "" then
+            table["UniswapV2Router02"] = uniswapV2Router02Addr
+        end
+        multicallForUniAddr = self.blockchain:DeployContract(faucet, "MulticallForUni")
+        if multicallForUniAddr ~= "" then
+            table["MultiCall"] = multicallForUniAddr
+        end
+        axiomL7Addr = self.blockchain:DeployContract(faucet, "AxiomOne", "AxiomL7", "L7", receive)
+        if axiomL7Addr ~= "" then
+            table["AxiomL7"] = axiomL7Addr
+        end
+        axiomL8Addr = self.blockchain:DeployContract(faucet, "AxiomOne", "AxiomL8", "L8", receive)
+        if axiomL8Addr ~= "" then
+            table["AxiomL8"] = axiomL8Addr
+        end
+
+        contractTable[#contractTable + 1] = table
+    end
+
     local accountNum = math.min(self.index.Accounts, 200)
     local result
     for i=1, accountNum do
@@ -18,7 +53,7 @@ function case:BeforeRun()
             result = self.blockchain:Transfer({
                 from = faucet,
                 to = toAddr,
-                amount = '1000000000000000000000000',
+                amount = transferMaxValue,
                 extra = "11",
             })
             sleep(0.1)
@@ -30,36 +65,42 @@ function case:BeforeRun()
 end
 
 function case:Run()
-    routerAddr = "0x0cA404feA82e87eC4e0A1c3E6F558124b327fE1c" -- 路由合约地址
+    -- get random contract
+    local randomContractIndex = self.toolkit.RandInt(0, #contractTable)
+    local contract = contractTable[randomContractIndex + 1] -- start index is 1
+    local routerAddr = contract["UniswapV2Router02"]
+    local L7Addr = contract["AxiomL7"]
+    local L8Addr = contract["AxiomL8"]
+
     local accountNum = math.min(self.index.Accounts, 200)
-    randomFaucet = self.toolkit.RandInt(0, accountNum)
-    faucet = self.blockchain:GetAccount(randomFaucet)
-    sender = self.blockchain:GetRandomAccount(faucet)
-    result = self.blockchain:Transfer({
+    local randomFaucet = self.toolkit.RandInt(0, accountNum)
+    local faucet = self.blockchain:GetAccount(randomFaucet)
+    local sender = self.blockchain:GetRandomAccount(faucet)
+    local result = self.blockchain:Transfer({
         from = faucet,
         to = sender,
-        amount = '100000000000000000000',
+        amount = transferValueEveryRun,
         extra = "uniswap transfer",
     })
     self.blockchain:Confirm(result)
-    amount = 1000000000000000000000     -- 1000枚代币
-    min = 0    -- 0.001 枚代币   可以设置为0
-    token1Addr = "0x6fD2623860Fa1986bb7DA35Dcb9fAcD692B22758" -- erc20 合约地址
-    token2Addr = "0x4a3aFbdad0b43CDA2Af599583347e06ABBb65Da7" -- erc20 合约地址
-    deadline = 1728283719 -- 截止时间，添加流动性时的入参
-    self.blockchain:SetContext('{"contract_name": "AxiomOne", "contract_addr": "0x6fD2623860Fa1986bb7DA35Dcb9fAcD692B22758"}')
+    local amount = 1000000000000000000000     -- 1000枚代币
+    local min = 0    -- 0.001 枚代币   可以设置为0
+    local token1Addr = L7Addr -- erc20 合约地址
+    local token2Addr = L8Addr -- erc20 合约地址
+    local deadline = 1728283719 -- 截止时间，添加流动性时的入参
     local approveTokenA = self.blockchain:Invoke({
         caller = sender,
         contract = "AxiomOne",
+        contract_addr = L7Addr,
         func = "approve",
         args = { routerAddr, amount }
     })
     self.blockchain:Confirm(approveTokenA)
     --print("approveTokenA:", approveTokenA.UID)
-    self.blockchain:SetContext('{"contract_name": "AxiomOne", "contract_addr": "0x4a3aFbdad0b43CDA2Af599583347e06ABBb65Da7"}')
     local approveTokenB = self.blockchain:Invoke({
         caller = sender,
         contract = "AxiomOne",
+        contract_addr = L8Addr,
         func = "approve",
         args = { routerAddr, amount }
     })
@@ -68,19 +109,19 @@ function case:Run()
     random = self.toolkit.RandInt(0, 2)
     if random == 0 then
         --r=0 add addLiquidity
-        self.blockchain:SetContext('{"contract_name": "AxiomOne", "contract_addr": "0x6fD2623860Fa1986bb7DA35Dcb9fAcD692B22758"}')
         local mintResult = self.blockchain:Invoke({
             caller = sender,
             contract = "AxiomOne",
+            contract_addr = L7Addr,
             func = "mint",
             args = { sender, amount },
         })
         self.blockchain:Confirm(mintResult)
         --print("r=0,mintResult:", mintResult.UID)
-        self.blockchain:SetContext('{"contract_name": "AxiomOne", "contract_addr": "0x4a3aFbdad0b43CDA2Af599583347e06ABBb65Da7"}')
         local mintResult2 = self.blockchain:Invoke({
             caller = sender,
             contract = "AxiomOne",
+            contract_addr = L8Addr,
             func = "mint",
             args = { sender, amount * 0.5 },
         })
@@ -89,6 +130,7 @@ function case:Run()
         local addLiquidity = self.blockchain:Invoke({
             caller = sender,
             contract = "UniswapV2Router02",
+            contract_addr = routerAddr,
             func = "addLiquidity",
             args = {
                 token1Addr,
@@ -105,17 +147,20 @@ function case:Run()
 --         print("r=0,addLiquidity: ", addLiquidity.UID)
     else
         --r=1 swap token
-        choice = self.toolkit.RandInt(0, 2)
+        local choice = self.toolkit.RandInt(0, 2)
+        local inputToken
+        local outputToken
         if choice == 0 then
-            inputToken = token1Addr
-            outputToken = token2Addr
+            inputToken = L7Addr
+            outputToken = L8Addr
         else
-            inputToken = token2Addr
-            outputToken = token1Addr
+            inputToken = L8Addr
+            outputToken = L7Addr
         end
         local swapResult = self.blockchain:Invoke({
             caller = sender,
             contract = "UniswapV2Router02",
+            contract_addr = routerAddr,
             func = "swapExactTokensForTokensSupportingFeeOnTransferTokens",
             args = {
                 amount * 0.005,
