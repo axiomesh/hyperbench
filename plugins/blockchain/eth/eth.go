@@ -203,7 +203,7 @@ func (e *ETH) GetChainID() uint64 {
 	return e.chainID.Uint64()
 }
 
-func (e *ETH) DeployContract(addr, contractName string, args ...any) (string, error) {
+func (e *ETH) DeployBigContract(addr, contractName string, gasLimit uint64, args ...any) (string, error) {
 	// convert args
 	deployArgs := e.convertArgs(args)
 	e.Logger.Infof("deploy args: %+v", deployArgs)
@@ -226,8 +226,8 @@ func (e *ETH) DeployContract(addr, contractName string, args ...any) (string, er
 		e.Logger.Errorf("generate transaction options failed: %v", err)
 		return "", err
 	}
-	auth.Value = big.NewInt(0)             // in wei
-	auth.GasLimit = uint64(deployGasLimit) // in units
+	auth.Value = big.NewInt(0) // in wei
+	auth.GasLimit = gasLimit   // in units
 	auth.GasPrice = e.gasPrice
 
 	accountAddr := common.HexToAddress(addr)
@@ -248,6 +248,10 @@ func (e *ETH) DeployContract(addr, contractName string, args ...any) (string, er
 	e.Logger.Infof("deploy contract: %s success, address: %s", contractName, contractAddress)
 
 	return contractAddress.String(), nil
+}
+
+func (e *ETH) DeployContract(addr, contractName string, args ...any) (string, error) {
+	return e.DeployBigContract(addr, contractName, deployGasLimit, args...)
 }
 
 // Invoke invoke contract with funcName and args in eth network

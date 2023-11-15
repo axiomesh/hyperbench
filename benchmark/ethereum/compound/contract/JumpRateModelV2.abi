@@ -1,0 +1,39 @@
+[
+    {
+		"inputs": [
+            {
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount1",
+				"type": "uint256"
+			},
+            {
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount2",
+				"type": "uint256"
+			},
+            {
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount3",
+				"type": "uint256"
+			},
+            {
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount4",
+				"type": "uint256"
+			},
+            {
+				"indexed": false,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+        ],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	}
+]

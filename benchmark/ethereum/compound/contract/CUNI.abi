@@ -1,5 +1,60 @@
 [
 	{
+		"inputs": [
+            {
+				"indexed": false,
+				"internalType": "address",
+				"name": "UNIAddr",
+				"type": "address"
+			},
+            {
+				"indexed": false,
+				"internalType": "address",
+				"name": "ComptrollerAddr",
+				"type": "address"
+			},
+            {
+				"indexed": false,
+				"internalType": "address",
+				"name": "JumpRateModelAddr",
+				"type": "address"
+			},
+            {
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount1",
+				"type": "uint256"
+			},
+            {
+				"indexed": false,
+				"internalType": "string",
+				"name": "UNIName",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "UNISymbol",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "decimals",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "admin",
+				"type": "address"
+			}
+        ],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{

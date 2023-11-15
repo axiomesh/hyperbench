@@ -8,6 +8,9 @@ type Blockchain interface {
 	// DeployContract should deploy contract with config file
 	DeployContract(addr, contractName string, args ...any) (string, error)
 
+	// DeployBigContract should deploy contract with config file
+	DeployBigContract(addr, contractName string, gasLimit uint64, args ...any) (string, error)
+
 	// Invoke just invoke the contract
 	Invoke(Invoke, ...Option) *Result
 
