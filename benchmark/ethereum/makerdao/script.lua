@@ -29,23 +29,84 @@ function case:BeforeRun()
         if daiAddr ~= "" then
             table["Dai"] = daiAddr
         end
+        self.blockchain:Confirm({["uid"] = daiAddr})
         erc20Addr = self.blockchain:DeployContract(from, "ERC20", from, "1000000000000000000000")
         if erc20Addr ~= "" then
             table["ERC20"] = erc20Addr
         end
+        self.blockchain:Confirm({["uid"] = erc20Addr})
         vatAddr = self.blockchain:DeployContract(from, "Vat", from)
         if vatAddr ~= "" then
             table["Vat"] = vatAddr
         end
+        self.blockchain:Confirm({["uid"] = vatAddr})
         daiJoinAddr = self.blockchain:DeployContract(from, "DaiJoin", from, vatAddr, daiAddr)
         if daiJoinAddr ~= "" then
             table["DaiJoin"] = daiJoinAddr
         end
+        self.blockchain:Confirm({["uid"] = daiJoinAddr})
         gemJoinAddr = self.blockchain:DeployContract(from, "GemJoin", from, vatAddr, "0x5444535300000000000000000000000000000000000000000000000000000000", erc20Addr)
         if gemJoinAddr ~= "" then
             table["GemJoin"] = gemJoinAddr
         end
+        self.blockchain:Confirm({["uid"] = gemJoinAddr})
 
+
+        result = self.blockchain:Invoke({
+            caller = fromAddr,
+            contract = "Dai", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = daiAddr,
+            func = "rely",
+            args = {daiJoinAddr},
+        })
+        result = self.blockchain:Invoke({
+            caller = fromAddr,
+            contract = "Vat", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = vatAddr,
+            func = "init",
+            args = {"0x5444535300000000000000000000000000000000000000000000000000000000"},
+        })
+        self.blockchain:Confirm(result)
+        result = self.blockchain:Invoke({
+            caller = fromAddr,
+            contract = "Vat", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = vatAddr,
+            func = "file",
+            args = {"0x4c696e6500000000000000000000000000000000000000000000000000000000", 100000000000000000000000000000000000000000000000000000000000000},
+        })
+        self.blockchain:Confirm(result)
+        result = self.blockchain:Invoke({
+            caller = fromAddr,
+            contract = "Vat", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = vatAddr,
+            func = "file",
+            args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x6c696e6500000000000000000000000000000000000000000000000000000000", 100000000000000000000000000000000000000000000000000000000000000},
+        })
+        self.blockchain:Confirm(result)
+        result = self.blockchain:Invoke({
+            caller = fromAddr,
+            contract = "Vat", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = vatAddr,
+            func = "file",
+            args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x73706f7400000000000000000000000000000000000000000000000000000000", 100000000000000000000000000000000000000000000000000000000000000},
+        })
+        self.blockchain:Confirm(result)
+        result = self.blockchain:Invoke({
+            caller = fromAddr,
+            contract = "Vat", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = vatAddr,
+            func = "rely",
+            args = {gemJoinAddr},
+        })
+        self.blockchain:Confirm(result)
+        result = self.blockchain:Invoke({
+            caller = fromAddr,
+            contract = "Vat", -- contract name is the contract file name under directory invoke/contract
+            contract_addr = vatAddr,
+            func = "rely",
+            args = {daiJoinAddr},
+        })
+        self.blockchain:Confirm(result)
         contractTable[#contractTable + 1] = table
     end
 end
