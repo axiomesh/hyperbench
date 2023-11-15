@@ -9,7 +9,10 @@ import (
 
 func newBlockchain(L *lua.LState, client fcom.Blockchain) lua.LValue {
 	clientTable := L.NewTable()
+	clientTable.RawSetString("GetChainID", getChainIDLuaFunction(L, client))
 	clientTable.RawSetString("DeployContract", deployContractLuaFunction(L, client))
+	clientTable.RawSetString("DeployBigContract", deployBigContractLuaFunction(L, client))
+	clientTable.RawSetString("Invoke", invokeLuaFunction(L, client))
 	clientTable.RawSetString("Invoke", invokeLuaFunction(L, client))
 	clientTable.RawSetString("Transfer", transferLuaFunction(L, client))
 	clientTable.RawSetString("Confirm", confirmLuaFunction(L, client))
@@ -208,8 +211,8 @@ func checkBlockChainByIdx(state *lua.LState, idx int) bool {
 	if !ok {
 		return false
 	}
-	k, _ := lvalue.Next(lua.LString("Invok"))
-	if k.String() != "Invoke" {
+	v := lvalue.RawGetString("GetChainID")
+	if v == lua.LNil {
 		return false
 	}
 	return true
@@ -222,7 +225,6 @@ func deployContractLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunc
 		if checkBlockChainByIdx(state, argIndex) {
 			argIndex++
 		}
-
 		addr := state.CheckString(argIndex)
 		argIndex++
 		contractName := state.CheckString(argIndex)
@@ -248,6 +250,40 @@ func deployContractLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunc
 	})
 }
 
+func deployBigContractLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
+	return L.NewFunction(func(state *lua.LState) int {
+		argIndex := 1
+		// check first arg is fcom.Blockchain
+		if checkBlockChainByIdx(state, argIndex) {
+			argIndex++
+		}
+		addr := state.CheckString(argIndex)
+		argIndex++
+		contractName := state.CheckString(argIndex)
+		argIndex++
+		gasLimit := state.CheckInt64(argIndex)
+
+		var args []any
+		for i := 1 + argIndex; i <= state.GetTop(); i++ {
+			luaValue := state.CheckAny(i)
+			arg, err := Lua2Go(luaValue)
+			if err != nil {
+				state.ArgError(1, fmt.Sprintf("argument %d error", i))
+			}
+			args = append(args, arg)
+		}
+
+		contractAddr, err := client.DeployBigContract(addr, contractName, uint64(gasLimit), args...)
+		if err != nil {
+			state.Push(lua.LString(""))
+			state.Push(lua.LString(err.Error()))
+			return 1
+		}
+		state.Push(lua.LString(contractAddr))
+		return 1
+	})
+}
+
 func getContractAddrByNameLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
 	return L.NewFunction(func(state *lua.LState) int {
 		firstArgIndex := 1
@@ -257,6 +293,20 @@ func getContractAddrByNameLuaFunction(L *lua.LState, client fcom.Blockchain) *lu
 		text := state.CheckString(firstArgIndex)
 		addr := client.GetContractAddrByName(text)
 		state.Push(lua.LString(addr))
+		return 1
+	})
+}
+
+func getChainIDLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
+	return L.NewFunction(func(state *lua.LState) int {
+		argIndex := 1
+		// check first arg is fcom.Blockchain
+		if checkBlockChainByIdx(state, argIndex) {
+			argIndex++
+		}
+
+		chainID := client.GetChainID()
+		state.Push(lua.LNumber(chainID))
 		return 1
 	})
 }

@@ -1,7 +1,7 @@
 [engine]
-rate = 150
+rate = 10
 duration = "200h"
-cap = 20
+cap = 10
 accounts = 100
 
 [client]
@@ -9,7 +9,6 @@ script = "benchmark/ethereum/erc20/script.lua"     # 脚本
 type = "eth"                                        # 区块链类型
 contract = "benchmark/ethereum/erc20/contract"     # 合约目录路径
 config = "benchmark/ethereum/erc20/eth"            # 区块链SDK配置路径
-plugin = "./eth.so"                                 # 插件路径
 
 [client.options] # 客户端选项
 

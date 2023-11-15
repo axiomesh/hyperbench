@@ -1,6 +1,13 @@
 [
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "admin",
+				"type": "address"
+			}
+		],
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "constructor"
