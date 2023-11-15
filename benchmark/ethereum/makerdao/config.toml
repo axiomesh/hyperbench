@@ -1,7 +1,7 @@
 [engine]
 rate = 1
 duration = "200h"
-cap = 10
+cap = 1
 accounts = 100
 
 [client]

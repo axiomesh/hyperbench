@@ -27,9 +27,10 @@ import (
 )
 
 const (
-	maxGasPrice = 10000000000000
-	gasLimit    = 3000000
-	sep         = "\n"
+	maxGasPrice    = 10000000000000
+	deployGasLimit = 4000000
+	gasLimit       = 300000
+	sep            = "\n"
 )
 
 // Contract contains the abi and bin files of contract
@@ -225,8 +226,8 @@ func (e *ETH) DeployContract(addr, contractName string, args ...any) (string, er
 		e.Logger.Errorf("generate transaction options failed: %v", err)
 		return "", err
 	}
-	auth.Value = big.NewInt(0)       // in wei
-	auth.GasLimit = uint64(gasLimit) // in units
+	auth.Value = big.NewInt(0)             // in wei
+	auth.GasLimit = uint64(deployGasLimit) // in units
 	auth.GasPrice = e.gasPrice
 
 	accountAddr := common.HexToAddress(addr)
@@ -392,7 +393,7 @@ func (e *ETH) Confirm(result *fcom.Result, ops ...fcom.Option) *fcom.Result {
 		return result
 	}
 	var errors []error
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= 10; i++ {
 		tx, err := e.ethClient.TransactionReceipt(context.Background(), common.HexToHash(result.UID))
 		result.ConfirmTime = time.Now().UnixNano()
 		if err != nil || tx == nil {

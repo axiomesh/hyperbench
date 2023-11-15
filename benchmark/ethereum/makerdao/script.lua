@@ -1,9 +1,8 @@
 local case = testcase.new()
 local contractTable = {}
-local maxDeployContractNum = 10
+local maxDeployContractNum = 1
 local from = "70997970C51812dc3A010C7d01b50e0d17dc79C8"
-local transferMaxValue = "10000000000000000000000"
-local transferValueEveryRun = "10000000000000000000"
+local transferValueEveryRun = "41000000000000000000"
 
 function sleep(n)
     os.execute("sleep " .. tonumber(n))
@@ -42,30 +41,13 @@ function case:BeforeRun()
         if daiJoinAddr ~= "" then
             table["DaiJoin"] = daiJoinAddr
         end
-        gemJoinAddr = self.blockchain:DeployContract(from, "GemJoin", from, vatAddr, "0x0000000000000000000000000000000000000000000000000000000000000000", erc20Addr)
+        gemJoinAddr = self.blockchain:DeployContract(from, "GemJoin", from, vatAddr, "0x5444535300000000000000000000000000000000000000000000000000000000", erc20Addr)
         if gemJoinAddr ~= "" then
             table["GemJoin"] = gemJoinAddr
         end
 
         contractTable[#contractTable + 1] = table
     end
-
-    local accountNum = math.min(self.index.Accounts, 200)
-    local result
-    for i=1, accountNum do
-        local toAddr = self.blockchain:GetAccount(i-1)
-        if toAddr ~= from then
-            result = self.blockchain:Transfer({
-                from = from,
-                to = toAddr,
-                amount = transferMaxValue,
-                extra = "11",
-            })
-            sleep(0.1)
-        end
-    end
-    -- wait token confirm
-    self.blockchain:Confirm(result)
 end
 
 -- Attention: this is called in local worker vm
@@ -80,15 +62,12 @@ function case:Run()
     local daiJoinAddr = contract["DaiJoin"]
     local gemJoinAddr = contract["GemJoin"]
 
-    -- invoke erc20 contract
-    local accountNum = math.min(self.index.Accounts, 200)
-    local randomFaucet = self.toolkit.RandInt(0, accountNum)
-    local faucet = self.blockchain:GetAccount(randomFaucet)
-    local fromAddr = self.blockchain:GetRandomAccount(faucet)
+    -- transfer token
+    local fromAddr = self.blockchain:GetRandomAccount(from)
     local result = self.blockchain:Transfer({
-            from = faucet,
+            from = from,
             to = fromAddr,
-            amount = '100000000000000000000',
+            amount = transferValueEveryRun,
             extra = "transfer",
         })
     --print("i. ERC20 mint result:" .. result.UID)
@@ -108,7 +87,7 @@ function case:Run()
         contract = "ERC20",
         contract_addr = erc20Addr,
         func = "approve",
-        args = {"0x7eC62F11970b96E2010F665B15174A47Dd3179B5", 1000},
+        args = {gemJoinAddr, 1000},
     })
 --     print("iii. ERC20 call result:" .. result.UID)
     self.blockchain:Confirm(result)
@@ -135,7 +114,7 @@ function case:Run()
         contract = "Vat",
         contract_addr = vatAddr,
         func = "hope",
-        args = {"0x4c335ac75D0610D9D03926a751A0698d29782f0a"},
+        args = {daiJoinAddr},
     })
 --     print("vi. Vat call result:" .. result.UID)
     self.blockchain:Confirm(result)
@@ -153,7 +132,7 @@ function case:Run()
         contract = "Dai",
         contract_addr = daiAddr,
         func = "approve",
-        args = {"0x4c335ac75D0610D9D03926a751A0698d29782f0a", 1},
+        args = {daiJoinAddr, 1},
     })
 --     print("viii. Dai call result:" .. result.UID)
     self.blockchain:Confirm(result)
