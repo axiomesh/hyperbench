@@ -53,14 +53,15 @@ function case:BeforeRun()
 
 
         result = self.blockchain:Invoke({
-            caller = fromAddr,
+            caller = from,
             contract = "Dai", -- contract name is the contract file name under directory invoke/contract
             contract_addr = daiAddr,
             func = "rely",
             args = {daiJoinAddr},
         })
+        self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
-            caller = fromAddr,
+            caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
             contract_addr = vatAddr,
             func = "init",
@@ -68,31 +69,31 @@ function case:BeforeRun()
         })
         self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
-            caller = fromAddr,
+            caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
             contract_addr = vatAddr,
-            func = "file",
-            args = {"0x4c696e6500000000000000000000000000000000000000000000000000000000", 100000000000000000000000000000000000000000000000000000000000000},
+            func = "file1",
+            args = {"0x4c696e6500000000000000000000000000000000000000000000000000000000", "100000000000000000000000000000000000000000000000000000000000000"},
         })
         self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
-            caller = fromAddr,
+            caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
             contract_addr = vatAddr,
             func = "file",
-            args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x6c696e6500000000000000000000000000000000000000000000000000000000", 100000000000000000000000000000000000000000000000000000000000000},
+            args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x6c696e6500000000000000000000000000000000000000000000000000000000", "100000000000000000000000000000000000000000000000000000000000000"},
         })
         self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
-            caller = fromAddr,
+            caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
             contract_addr = vatAddr,
             func = "file",
-            args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x73706f7400000000000000000000000000000000000000000000000000000000", 100000000000000000000000000000000000000000000000000000000000000},
+            args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x73706f7400000000000000000000000000000000000000000000000000000000", "100000000000000000000000000000000000000000000000000000000000000"},
         })
         self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
-            caller = fromAddr,
+            caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
             contract_addr = vatAddr,
             func = "rely",
@@ -100,7 +101,7 @@ function case:BeforeRun()
         })
         self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
-            caller = fromAddr,
+            caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
             contract_addr = vatAddr,
             func = "rely",
