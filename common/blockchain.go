@@ -5,6 +5,9 @@ type Blockchain interface {
 	// GetChainID get chain id
 	GetChainID() uint64
 
+	// GetLatestBlockNumber get laste block number
+	GetLatestBlockNumber() (uint64, error)
+
 	// DeployContract should deploy contract with config file
 	DeployContract(addr, contractName string, args ...any) (string, error)
 
