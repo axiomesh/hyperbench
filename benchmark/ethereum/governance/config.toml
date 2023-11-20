@@ -1,0 +1,21 @@
+[engine]
+rate = 1
+duration = "200h"
+cap = 1
+accounts = 4
+
+[client]
+script = "benchmark/ethereum/governance/script.lua"     # 脚本
+type = "eth"                                        # 区块链类型
+contract = "benchmark/ethereum/governance/contract"     # 合约目录路径
+config = "benchmark/ethereum/governance/eth"            # 区块链SDK配置路径
+
+[client.options] # 客户端选项
+
+[recorder.log]
+dump=false
+dir="./logs"
+level="debug"
+
+[recorder.csv]
+dir="./csv"

@@ -3,6 +3,7 @@ package eth
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -335,6 +336,21 @@ func (e *ETH) convertArgs(args []interface{}) []interface{} {
 			dstArgs = append(dstArgs, big.NewInt(int64(argUint64)))
 		case reflect.String:
 			argStr := arg.(string)
+			// convert to uint64 and uint8
+			if strings.HasPrefix(argStr, "=") {
+				prefix := argStr[strings.Index(argStr, "=")+1 : strings.LastIndex(argStr, "=")]
+				value := argStr[strings.LastIndex(argStr, "=")+1:]
+				switch prefix {
+				case "uint8":
+					dstArgs = append(dstArgs, cast.ToUint8(value))
+				case "uint64":
+					dstArgs = append(dstArgs, cast.ToUint64(value))
+				case "bytes":
+					dstArgs = append(dstArgs, []byte(value))
+				}
+				continue
+			}
+
 			str := strings.TrimPrefix(argStr, "0x")
 			if len(str) == common.AddressLength*2 {
 				addr := common.HexToAddress(argStr)
@@ -381,6 +397,15 @@ func (e *ETH) convertArgs(args []interface{}) []interface{} {
 			} else {
 				dstArgs = append(dstArgs, arg) // or handle non-address slices as needed
 			}
+		case reflect.Map:
+			argMap := arg.(map[string]interface{})
+			// Attention: convert map to bytes
+			data, err := json.Marshal(argMap)
+			if err != nil {
+				return []interface{}{}
+			}
+
+			dstArgs = append(dstArgs, data)
 		default:
 			dstArgs = append(dstArgs, arg)
 		}
@@ -543,6 +568,16 @@ func (e *ETH) LogEndStatus() (end int64, err error) {
 	e.Logger.Infof("Log end block number: %d", e.endBlock)
 	end = time.Now().UnixNano()
 	return end, err
+}
+
+// GetLatestBlockNumber get latest block number
+func (e *ETH) GetLatestBlockNumber() (blockNumber uint64, err error) {
+	blockInfo, err := e.ethClient.HeaderByNumber(context.Background(), nil)
+	if err != nil {
+		return 0, err
+	}
+
+	return blockInfo.Number.Uint64(), nil
 }
 
 // GetRandomAccount get random account except addr
