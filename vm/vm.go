@@ -31,6 +31,10 @@ type MasterVM interface {
 	LogStartStatus() (int64, error)
 	// LogEndStatus records end blockheight and time
 	LogEndStatus() (int64, error)
+	// LogContractTable records contracts table info file
+	LogContractTable() error
+	// InitContractTable load contract addresses from config
+	InitContractAddress() *fcom.Result
 }
 
 // BaseVM is the part interface of VM that will be called in both master and worker

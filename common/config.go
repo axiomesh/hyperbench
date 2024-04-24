@@ -40,12 +40,13 @@ const (
 
 // client
 const (
-	ClientScriptPath       = "client.script"
-	ClientTypePath         = "client.type"
-	ClientConfigPath       = "client.config"
-	ClientContractPath     = "client.contract"
-	ClientOptionPath       = "client.options"
-	ClientPluginPath       = "client.plugin"
+	ClientScriptPath                  = "client.script"
+	ClientTypePath                    = "client.type"
+	ClientConfigPath                  = "client.config"
+	ClientContractPath                = "client.contract"
+	ClientOptionPath                  = "client.options"
+	ClientPluginPath                  = "client.plugin"
+	ClientEnableConfigContractAddress = "client.enable_config_contract_address"
 )
 
 // recorder

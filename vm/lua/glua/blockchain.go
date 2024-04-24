@@ -17,6 +17,8 @@ func newBlockchain(L *lua.LState, client fcom.Blockchain) lua.LValue {
 	clientTable.RawSetString("Invoke", invokeLuaFunction(L, client))
 	clientTable.RawSetString("Transfer", transferLuaFunction(L, client))
 	clientTable.RawSetString("Confirm", confirmLuaFunction(L, client))
+	clientTable.RawSetString("LogContractTable", logContractTableLuaFunction(L, client))
+	clientTable.RawSetString("InitContractAddress", initContractAddressLuaFunction(L, client))
 	clientTable.RawSetString("Query", queryLuaFunction(L, client))
 	clientTable.RawSetString("Option", optionLuaFunction(L, client))
 	clientTable.RawSetString("GetContext", getContextLuaFunction(L, client))
@@ -169,6 +171,26 @@ func confirmLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
 			return b.Confirm(b2.(*fcom.Result), option...)
 		})
 		return res
+	})
+}
+
+func logContractTableLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
+	return L.NewFunction(func(state *lua.LState) int {
+		err := client.LogContractTable()
+		if err != nil {
+			state.Push(lua.LString(err.Error()))
+		} else {
+			state.Push(lua.LString(""))
+		}
+		return 1
+	})
+}
+
+func initContractAddressLuaFunction(L *lua.LState, client fcom.Blockchain) *lua.LFunction {
+	return L.NewFunction(func(state *lua.LState) int {
+		contractAddress := client.InitContractAddress()
+		state.Push(go2Lua(state, contractAddress))
+		return 1
 	})
 }
 

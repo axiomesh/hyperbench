@@ -9,6 +9,7 @@ script = "benchmark/ethereum/makerdao/script.lua" # 脚本
 type = "eth"                                      # 区块链类型
 contract = "benchmark/ethereum/makerdao/contract" # 合约目录路径
 config = "benchmark/ethereum/makerdao/eth"        # 区块链SDK配置路径
+enable_config_contract_address = false            #是否允许配置已部署的合约
 
 [client.options] # 客户端选项
 

@@ -16,5 +16,6 @@ func newCommonResult(L *lua.LState, r *fcom.Result) lua.LValue {
 	resultTable.RawSetString("WriteTime", lua.LNumber(r.WriteTime))
 	resultTable.RawSetString("Status", lua.LString(r.Status))
 	resultTable.RawSetString("Ret", go2Lua(L, r.Ret))
+	resultTable.RawSetString("ContractTable", go2Lua(L, r.ContractTable))
 	return resultTable
 }

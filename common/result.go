@@ -39,4 +39,6 @@ type Result struct {
 	Status Status `mapstructure:"status"`
 	// Ret is the return value of transaction
 	Ret []interface{} `mapstructure:"ret"`
+	// ContractTable is the deployed contract addresses
+	ContractTable []interface{} `mapstructure:"contract_table"`
 }

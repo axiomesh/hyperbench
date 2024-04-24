@@ -53,6 +53,12 @@ type Blockchain interface {
 	// LogEndStatus records end blockheight and time
 	LogEndStatus() (int64, error)
 
+	// LogContractTable records deployed contracts
+	LogContractTable() error
+
+	// InitContractAddress load contract table from config file
+	InitContractAddress() *Result
+
 	// GetRandomAccount get random account except addr
 	GetRandomAccount(addr string) string
 

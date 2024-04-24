@@ -22,6 +22,19 @@ function case:BeforeRun()
         return
     end
 
+    -- If enable use deployed contracts, then init contract table from configured contract addresses, and skip deploying contract.
+    -- If disable use deployed contracts, then InitContractAddress is no-op.
+    contractAddressTable = self.blockchain:InitContractAddress()
+    if #(contractAddressTable.ContractTable) > 0 then
+        contractTable = contractAddressTable.ContractTable
+        for key, value in pairs(contractTable) do
+            for k, v in pairs(value) do
+                print("contract:"..k..", address:"..v)
+            end
+        end
+        return
+    end
+
     local chainID = self.blockchain:GetChainID()
     for i = 1, maxDeployContractNum do
         local table = {}
@@ -109,6 +122,8 @@ function case:BeforeRun()
         })
         self.blockchain:Confirm(result)
         contractTable[#contractTable + 1] = table
+
+        self.blockchain:LogContractTable()
     end
 end
 
