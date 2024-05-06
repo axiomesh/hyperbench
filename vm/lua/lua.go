@@ -195,6 +195,14 @@ func (v *VM) LogEndStatus() (end int64, err error) {
 	return v.client.LogEndStatus()
 }
 
+func (v *VM) LogContractTable() error {
+	return v.client.LogContractTable()
+}
+
+func (v *VM) InitContractAddress() *fcom.Result {
+	return v.client.InitContractAddress()
+}
+
 // BeforeSet will call before set context.
 func (v *VM) BeforeSet() error {
 	fn := v.instance.RawGetString(beforeSet)
@@ -271,16 +279,18 @@ func (v *VM) setPlugins(table *lua.LTable) (err error) {
 
 	clientType, clientConfigPath := viper.GetString(fcom.ClientTypePath), viper.GetString(fcom.ClientConfigPath)
 	contractPath := viper.GetString(fcom.ClientContractPath)
+	enableConfigContractAddress := viper.GetBool(fcom.ClientEnableConfigContractAddress)
 	//args := viper.GetStringSlice(fcom.ClientContractArgsPath)
 	options := viper.GetStringMap(fcom.ClientOptionPath)
 	options["vmIdx"] = v.index.VM
 	options["wkIdx"] = v.index.Worker
 
 	v.client, err = blockchain.NewBlockchain(base2.ClientConfig{
-		ClientType:   clientType,
-		ConfigPath:   clientConfigPath,
-		ContractPath: contractPath,
-		Options: options,
+		ClientType:                  clientType,
+		ConfigPath:                  clientConfigPath,
+		ContractPath:                contractPath,
+		Options:                     options,
+		EnableConfigContractAddress: enableConfigContractAddress,
 	})
 
 	if err != nil {

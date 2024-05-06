@@ -56,6 +56,14 @@ func (v *VMBase) LogEndStatus() (int64, error) {
 	return 0, nil
 }
 
+func (v *VMBase) LogContractTable() error {
+	return nil
+}
+
+func (v *VMBase) InitContractAddress() *fcom.Result {
+	return nil
+}
+
 // BeforeSet will call before set context.
 func (v *VMBase) BeforeSet() error {
 	return nil

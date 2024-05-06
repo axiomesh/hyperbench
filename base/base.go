@@ -18,7 +18,8 @@ type ClientConfig struct {
 	ConfigPath string `mapstructure:"config"`
 
 	// contract
-	ContractPath string        `mapstructure:"contract"`
+	ContractPath                string `mapstructure:"contract"`
+	EnableConfigContractAddress bool   `mapstructure:"contract"`
 
 	// options
 	Options map[string]interface{} `mapstructure:"options"`

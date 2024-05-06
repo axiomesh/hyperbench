@@ -1,6 +1,7 @@
 package eth
 
 import (
+	"bufio"
 	"context"
 	"crypto/ecdsa"
 	"encoding/json"
@@ -94,6 +95,8 @@ type ETH struct {
 	wkIdx      uint64
 	vmIdx      uint64
 	op         option
+
+	contractTable map[string]string // contract name -> contract address
 }
 
 // Msg contains message of context
@@ -196,6 +199,7 @@ func New(blockchainBase *base.BlockchainBase) (client interface{}, err error) {
 			setGas: false,
 			noSend: false,
 		},
+		contractTable: make(map[string]string),
 	}
 	return
 }
@@ -247,6 +251,7 @@ func (e *ETH) DeployBigContract(addr, contractName string, gasLimit uint64, args
 	}
 
 	e.Logger.Infof("deploy contract: %s success, address: %s", contractName, contractAddress)
+	e.contractTable[contractName] = contractAddress.String()
 
 	return contractAddress.String(), nil
 }
@@ -415,6 +420,7 @@ func (e *ETH) convertArgs(args []interface{}) []interface{} {
 
 // Confirm check the result of `Invoke` or `Transfer`
 func (e *ETH) Confirm(result *fcom.Result, ops ...fcom.Option) *fcom.Result {
+	time.Sleep(1000 * time.Millisecond)
 	if result.UID == "" ||
 		result.UID == fcom.InvalidUID ||
 		result.Status != fcom.Success ||
@@ -568,6 +574,69 @@ func (e *ETH) LogEndStatus() (end int64, err error) {
 	e.Logger.Infof("Log end block number: %d", e.endBlock)
 	end = time.Now().UnixNano()
 	return end, err
+}
+
+func (e *ETH) LogContractTable() error {
+	contractTableFilePath := path.Join(e.ConfigPath, "contract.txt")
+	blob, err := json.Marshal(e.contractTable)
+	if err != nil {
+		e.Logger.Errorf("[LogContractTable] marshal contract table fail: %v", err)
+		return err
+	}
+
+	// Open file in append mode. If file not exist, create it.
+	file, err := os.OpenFile(contractTableFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		e.Logger.Errorf("[LogContractTable] create contract table file fail: %v", err)
+		return err
+	}
+	defer file.Close()
+
+	if _, err = file.WriteString(string(blob) + "\n"); err != nil {
+		e.Logger.Errorf("[LogContractTable] write contract table file fail: %v", err)
+		return err
+	}
+
+	e.Logger.Infof("[LogContractTable] log contract table file successfully")
+
+	e.contractTable = map[string]string{}
+	return nil
+}
+
+// InitContractAddress load deployed contract addresses from default contract address file.
+// If disable using deployed contract, then InitContractAddress will clear default contract address file.
+func (e *ETH) InitContractAddress() *fcom.Result {
+	contractTableFilePath := path.Join(e.ConfigPath, "contract.txt")
+	//if disable load contract address, then clear the default contract address path.
+	if !e.EnableConfigContractAddress {
+		if err := os.RemoveAll(contractTableFilePath); err != nil {
+			e.Logger.Errorf("[InitContractAddress] remove contract address file error: %v", err)
+		}
+		return &fcom.Result{}
+	}
+
+	file, err := os.Open(contractTableFilePath)
+	if err != nil {
+		e.Logger.Errorf("fail to open contract address file %v:", err)
+		panic(err)
+	}
+	defer file.Close()
+
+	res := make([]interface{}, 0)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		table := make(map[string]interface{})
+		if err := json.Unmarshal([]byte(line), &table); err != nil {
+			e.Logger.Errorf("unmarshal contract table error: %v", err)
+			return nil
+		}
+		res = append(res, table)
+	}
+
+	return &fcom.Result{
+		ContractTable: res,
+	}
 }
 
 // GetLatestBlockNumber get latest block number
