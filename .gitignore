@@ -32,6 +32,7 @@ packrd
 lua/testImpl.lua
 dist
 *-address
+.env
 
 node_modules
 package.json
