@@ -1,8 +1,8 @@
 local case = testcase.new()
 local contractTable = {}
 local maxDeployContractNum = 100
-local from = "9965507D1a55bcC2695C58ba16FB37d819B0A4dc"
-local transferValueEveryRun = "80000000000000000000"
+local from = "3a8a968206B3710bA97A78795d7f8F68d10b2874"
+local transferValueEveryRun = "4000000000000000000"
 
 function sleep(n)
     os.execute("sleep " .. tonumber(n))
@@ -30,9 +30,19 @@ function case:BeforeRun()
     end
 end
 
+-- Check if the current time is valid for running the Run method
+function sleepUntilNextInterval()
+    local time = os.date("*t")
+    local secondsUntilNextInterval = (120 - (time.min % 2) * 60 - time.sec) % 120
+    if secondsUntilNextInterval > 0 then
+        sleep(secondsUntilNextInterval)
+    end
+end
+
 -- Attention: this is called in local worker vm
 -- Run more time called by lua vm, this is controled by config
 function case:Run()
+    sleepUntilNextInterval()
     local randomContractIndex = self.toolkit.RandInt(0, #contractTable)
     local contractAddr = contractTable[randomContractIndex + 1]
 

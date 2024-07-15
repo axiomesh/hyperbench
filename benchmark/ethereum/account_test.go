@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -56,6 +58,16 @@ func TestAccount(t *testing.T) {
 func TestGenerateAccountAndAddr(t *testing.T) {
 	for _, keyFilePath := range keyGeneratePaths {
 		// keyfile like `transfer/eth/keystore/keys`
+		// 获取文件目录路径
+		dir := filepath.Dir(keyFilePath)
+
+		// 创建多级目录
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			fmt.Println("Error creating directories:", err)
+			return
+		}
+
 		keyFile, err := os.OpenFile(keyFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		assert.Nil(t, err)
 

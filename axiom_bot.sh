@@ -22,7 +22,18 @@ ADDRESS_ERC20=${ADDRESS_ERC20}
 PRIVATE_KEY_MAKERDAO=${PRIVATE_KEY_MAKERDAO}
 PRIVATE_KEY_ERC20=${PRIVATE_KEY_ERC20}
 
-# 检查是否成功读取到私钥
+
+# 检查是否成功读取到地址和私钥
+if [ -z "$ADDRESS_MAKERDAO" ]; then
+    echo "Error: ADDRESS_MAKERDAO environment variable is not set."
+    exit 1
+fi
+
+if [ -z "$ADDRESS_ERC20" ]; then
+    echo "Error: ADDRESS_ERC20 environment variable is not set."
+    exit 1
+fi
+
 if [ -z "$PRIVATE_KEY_MAKERDAO" ]; then
     echo "Error: PRIVATE_KEY_MAKERDAO environment variable is not set."
     exit 1
@@ -37,9 +48,23 @@ fi
 sed -i "s/local from = .*/local from = \"$ADDRESS_MAKERDAO\"/" $SCRIPT_LUA_MAKERDAO
 sed -i "s/local from = .*/local from = \"$ADDRESS_ERC20\"/" $SCRIPT_LUA_ERC20
 
-# 在keystore文件开头添加私钥并换行
-sed -i "1i$PRIVATE_KEY_MAKERDAO\n" $KEYSTORE_FILE_MAKERDAO
-sed -i "1i$PRIVATE_KEY_ERC20\n" $KEYSTORE_FILE_ERC20
+# 在keystore文件开头添加私钥（如果第一行没有相同的值）
+add_key_if_not_present() {
+    local key_file=$1
+    local private_key=$2
+
+    if [ -f "$key_file" ]; then
+        first_line=$(head -n 1 "$key_file")
+        if [ "$first_line" != "$private_key" ]; then
+            sed -i "1i$private_key" "$key_file"
+        fi
+    else
+        echo -e "$private_key" > "$key_file"
+    fi
+}
+
+add_key_if_not_present "$KEYSTORE_FILE_MAKERDAO" "$PRIVATE_KEY_MAKERDAO"
+add_key_if_not_present "$KEYSTORE_FILE_ERC20" "$PRIVATE_KEY_ERC20"
 
 # config文件变更，其中duration和accounts为固定数值，rate和cap为随机数
 # 固定数值
