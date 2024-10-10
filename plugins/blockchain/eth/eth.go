@@ -668,6 +668,10 @@ func (e *ETH) GetAccount(index uint64) string {
 
 // GetRandomAccountByGroup get random account by group
 func (e *ETH) GetRandomAccountByGroup() string {
+	return e.getRandomAccountByGroup()
+}
+
+func (e *ETH) getRandomAccountByGroup() string {
 	// total group
 	totalGroup := e.workerNum * e.engineCap
 	// my group
@@ -686,6 +690,21 @@ func (e *ETH) GetRandomAccountByGroup() string {
 	}
 
 	return accountAddrList[accIndex]
+}
+
+// GetRandomAccountByGroupExpectSelf get random account by group expect self account
+func (e *ETH) GetRandomAccountByGroupExpectSelf(addr string) string {
+	retryTime := 100
+	for {
+		if retryTime <= 0 {
+			return ""
+		}
+		account := e.GetRandomAccountByGroup()
+		if account != addr {
+			return account
+		}
+		retryTime--
+	}
 }
 
 // Option ethereum receive options to change the config to client.

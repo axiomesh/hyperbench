@@ -25,6 +25,7 @@ func newBlockchain(L *lua.LState, client fcom.Blockchain) lua.LValue {
 	clientTable.RawSetString("SetContext", setContextLuaFunction(L, client))
 	clientTable.RawSetString("ResetContext", resetContextLuaFunction(L, client))
 	clientTable.RawSetString("GetRandomAccountByGroup", getRandomAccountByGroupLuaFunction(L, client))
+	clientTable.RawSetString("GetRandomAccountByGroupExpectSelf", getRandomAccountByGroupExpectSelfLuaFunction(L, client))
 	clientTable.RawSetString("GetRandomAccount", getRandomAccountLuaFunction(L, client))
 	clientTable.RawSetString("GetAccount", getAccountLuaFunction(L, client))
 	clientTable.RawSetString("GetContractAddrByName", getContractAddrByNameLuaFunction(L, client))
@@ -77,6 +78,20 @@ func resetContextLuaFunction(L *lua.LState, client fcom.Blockchain) lua.LValue {
 func getRandomAccountByGroupLuaFunction(L *lua.LState, client fcom.Blockchain) lua.LValue {
 	return L.NewFunction(func(state *lua.LState) int {
 		account := client.GetRandomAccountByGroup()
+		state.Push(lua.LString(account))
+		return 1
+	})
+}
+
+func getRandomAccountByGroupExpectSelfLuaFunction(L *lua.LState, client fcom.Blockchain) lua.LValue {
+	return L.NewFunction(func(state *lua.LState) int {
+		firstArgIndex := 1
+		// check first arg is fcom.Blockchain
+		if checkBlockChainByIdx(state, 1) {
+			firstArgIndex++
+		}
+		text := state.CheckString(firstArgIndex)
+		account := client.GetRandomAccountByGroupExpectSelf(text)
 		state.Push(lua.LString(account))
 		return 1
 	})
