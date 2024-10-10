@@ -68,7 +68,8 @@ type Blockchain interface {
 	// GetRandomAccountByGroup get random account by group
 	GetRandomAccountByGroup() string
 
-	GetRandomAccountByGroupExpectSelf(addr string) string
+	// GetRandomAccountByGroupExpectSelf get random account by group except self, accounts in range [start, end)
+	GetRandomAccountByGroupExpectSelf(addr string, start, end uint64) string
 
 	// GetContractAddrByName get contract address by contract name
 	GetContractAddrByName(contractName string) string

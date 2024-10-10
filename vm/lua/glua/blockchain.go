@@ -85,13 +85,18 @@ func getRandomAccountByGroupLuaFunction(L *lua.LState, client fcom.Blockchain) l
 
 func getRandomAccountByGroupExpectSelfLuaFunction(L *lua.LState, client fcom.Blockchain) lua.LValue {
 	return L.NewFunction(func(state *lua.LState) int {
-		firstArgIndex := 1
+		argIndex := 1
 		// check first arg is fcom.Blockchain
 		if checkBlockChainByIdx(state, 1) {
-			firstArgIndex++
+			argIndex++
 		}
-		text := state.CheckString(firstArgIndex)
-		account := client.GetRandomAccountByGroupExpectSelf(text)
+		addr := state.CheckString(argIndex)
+		argIndex++
+		start := state.CheckInt64(argIndex)
+		argIndex++
+		end := state.CheckInt64(argIndex)
+		argIndex++
+		account := client.GetRandomAccountByGroupExpectSelf(addr, uint64(start), uint64(end))
 		state.Push(lua.LString(account))
 		return 1
 	})
