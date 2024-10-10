@@ -668,16 +668,22 @@ func (e *ETH) GetAccount(index uint64) string {
 
 // GetRandomAccountByGroup get random account by group
 func (e *ETH) GetRandomAccountByGroup() string {
-	return e.getRandomAccountByGroup()
+	return e.getRandomAccountByGroup(0, accountCount)
 }
 
-func (e *ETH) getRandomAccountByGroup() string {
+func (e *ETH) getRandomAccountByGroup(start uint64, end uint64) string {
+	aliveAccountNum := end - start
+	if aliveAccountNum < 1 || aliveAccountNum > accountCount {
+		e.Logger.Errorf("invalid account range: %d-%d", start, end)
+		aliveAccountNum = accountCount
+	}
+	aliveAccountAddrList := accountAddrList[start:end]
 	// total group
 	totalGroup := e.workerNum * e.engineCap
 	// my group
 	group := e.wkIdx*e.engineCap + e.vmIdx
 
-	accountNumOneGroup := accountCount / totalGroup
+	accountNumOneGroup := aliveAccountNum / totalGroup
 
 	if accountNumOneGroup < 1 {
 		accountNumOneGroup = 1
@@ -689,17 +695,17 @@ func (e *ETH) getRandomAccountByGroup() string {
 		accIndex = int64(len(accountAddrList) - 1)
 	}
 
-	return accountAddrList[accIndex]
+	return aliveAccountAddrList[accIndex]
 }
 
 // GetRandomAccountByGroupExpectSelf get random account by group expect self account
-func (e *ETH) GetRandomAccountByGroupExpectSelf(addr string) string {
+func (e *ETH) GetRandomAccountByGroupExpectSelf(addr string, start, end uint64) string {
 	retryTime := 100
 	for {
 		if retryTime <= 0 {
 			return ""
 		}
-		account := e.GetRandomAccountByGroup()
+		account := e.getRandomAccountByGroup(start, end)
 		if account != addr {
 			return account
 		}
