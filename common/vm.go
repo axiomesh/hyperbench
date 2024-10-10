@@ -22,4 +22,5 @@ type VMContext struct {
 	VMIdx     int64 `mapstructure:"vm"`       // VMIdx is the index of vm
 	Engine    int64 `mapstructure:"engine"`   // Engine is the total engine(vm) num
 	Accounts  int64 `mapstructure:"accounts"` // Accounts is the count of acutal test accounts
+	Alive     int64 `mapstructure:"alive"`
 }

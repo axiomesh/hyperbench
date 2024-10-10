@@ -1,8 +1,11 @@
 local case = testcase.new()
 local contractTable = {}
 local maxDeployContractNum = 1
-local from = "70997970C51812dc3A010C7d01b50e0d17dc79C8"
+--local from = "70997970C51812dc3A010C7d01b50e0d17dc79C8"
+local from = "f7cf2bE5Ec35Ac37d9bcaD76359B97a3511253c8"
 local transferValueEveryRun = "41000000000000000000"
+local start_time = os.time()
+local randomFaucet = 0
 
 function sleep(n)
     os.execute("sleep " .. tonumber(n))
@@ -42,27 +45,27 @@ function case:BeforeRun()
         if daiAddr ~= "" then
             table["Dai"] = daiAddr
         end
-        self.blockchain:Confirm({["uid"] = daiAddr})
+        --self.blockchain:Confirm({["uid"] = daiAddr})
         erc20Addr = self.blockchain:DeployContract(from, "ERC20", from, "1000000000000000000000")
         if erc20Addr ~= "" then
             table["ERC20"] = erc20Addr
         end
-        self.blockchain:Confirm({["uid"] = erc20Addr})
+        --self.blockchain:Confirm({["uid"] = erc20Addr})
         vatAddr = self.blockchain:DeployContract(from, "Vat", from)
         if vatAddr ~= "" then
             table["Vat"] = vatAddr
         end
-        self.blockchain:Confirm({["uid"] = vatAddr})
+        --self.blockchain:Confirm({["uid"] = vatAddr})
         daiJoinAddr = self.blockchain:DeployContract(from, "DaiJoin", from, vatAddr, daiAddr)
         if daiJoinAddr ~= "" then
             table["DaiJoin"] = daiJoinAddr
         end
-        self.blockchain:Confirm({["uid"] = daiJoinAddr})
+        --self.blockchain:Confirm({["uid"] = daiJoinAddr})
         gemJoinAddr = self.blockchain:DeployContract(from, "GemJoin", from, vatAddr, "0x5444535300000000000000000000000000000000000000000000000000000000", erc20Addr)
         if gemJoinAddr ~= "" then
             table["GemJoin"] = gemJoinAddr
         end
-        self.blockchain:Confirm({["uid"] = gemJoinAddr})
+        --self.blockchain:Confirm({["uid"] = gemJoinAddr})
 
 
         result = self.blockchain:Invoke({
@@ -72,7 +75,7 @@ function case:BeforeRun()
             func = "rely",
             args = {daiJoinAddr},
         })
-        self.blockchain:Confirm(result)
+        --self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
             caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
@@ -80,7 +83,7 @@ function case:BeforeRun()
             func = "init",
             args = {"0x5444535300000000000000000000000000000000000000000000000000000000"},
         })
-        self.blockchain:Confirm(result)
+        --self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
             caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
@@ -88,7 +91,7 @@ function case:BeforeRun()
             func = "file1",
             args = {"0x4c696e6500000000000000000000000000000000000000000000000000000000", "100000000000000000000000000000000000000000000000000000000000000"},
         })
-        self.blockchain:Confirm(result)
+       -- self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
             caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
@@ -96,7 +99,7 @@ function case:BeforeRun()
             func = "file",
             args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x6c696e6500000000000000000000000000000000000000000000000000000000", "100000000000000000000000000000000000000000000000000000000000000"},
         })
-        self.blockchain:Confirm(result)
+        --self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
             caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
@@ -104,7 +107,7 @@ function case:BeforeRun()
             func = "file",
             args = {"0x5444535300000000000000000000000000000000000000000000000000000000", "0x73706f7400000000000000000000000000000000000000000000000000000000", "100000000000000000000000000000000000000000000000000000000000000"},
         })
-        self.blockchain:Confirm(result)
+       -- self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
             caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
@@ -112,7 +115,7 @@ function case:BeforeRun()
             func = "rely",
             args = {gemJoinAddr},
         })
-        self.blockchain:Confirm(result)
+        --self.blockchain:Confirm(result)
         result = self.blockchain:Invoke({
             caller = from,
             contract = "Vat", -- contract name is the contract file name under directory invoke/contract
@@ -120,7 +123,7 @@ function case:BeforeRun()
             func = "rely",
             args = {daiJoinAddr},
         })
-        self.blockchain:Confirm(result)
+        --self.blockchain:Confirm(result)
         contractTable[#contractTable + 1] = table
 
         self.blockchain:LogContractTable()
@@ -130,6 +133,10 @@ end
 -- Attention: this is called in local worker vm
 -- Run more time called by lua vm, this is controled by config
 function case:Run()
+
+    local time_diff = os.difftime(os.time(), start_time)
+    --local multiple = time_diff / (24 * 3600)
+    local multiple = math.floor(time_diff / (60))
     -- get random contract
     local randomContractIndex = self.toolkit.RandInt(0, #contractTable)
     local contract = contractTable[randomContractIndex + 1]
@@ -138,17 +145,24 @@ function case:Run()
     local vatAddr = contract["Vat"]
     local daiJoinAddr = contract["DaiJoin"]
     local gemJoinAddr = contract["GemJoin"]
-
+    local range = math.floor(self.index.Accounts / self.index.Alive)
+    if multiple == 0 then
+        randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+    else
+        randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+    end
     -- transfer token
-    local fromAddr = self.blockchain:GetRandomAccount(from)
+    --local randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+    local fromNew = self.blockchain:GetAccount(randomFaucet)
+    local fromAddr = self.blockchain:GetRandomAccount(fromNew)
     local result = self.blockchain:Transfer({
-            from = from,
+            from = fromNew,
             to = fromAddr,
             amount = transferValueEveryRun,
             extra = "transfer",
         })
     --print("i. ERC20 mint result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
 
     result = self.blockchain:Invoke({
         caller = fromAddr,
@@ -158,7 +172,7 @@ function case:Run()
         args = {100000000},
     })
 --     print("ii. ERC20 mint result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "ERC20",
@@ -167,7 +181,7 @@ function case:Run()
         args = {gemJoinAddr, 1000},
     })
 --     print("iii. ERC20 call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "GemJoin",
@@ -176,7 +190,7 @@ function case:Run()
         args = {fromAddr, 1000},
     })
 --     print("iv. GemJoin call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "Vat",
@@ -185,7 +199,7 @@ function case:Run()
         args = {"0x5444535300000000000000000000000000000000000000000000000000000000", fromAddr, fromAddr, fromAddr, 100, 1},
     })
 --     print("v. Vat call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "Vat",
@@ -194,7 +208,7 @@ function case:Run()
         args = {daiJoinAddr},
     })
 --     print("vi. Vat call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "DaiJoin",
@@ -203,7 +217,7 @@ function case:Run()
         args = {fromAddr, 1},
     })
 --     print("vii. DaiJoin call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "Dai",
@@ -212,7 +226,7 @@ function case:Run()
         args = {daiJoinAddr, 1},
     })
 --     print("viii. Dai call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "DaiJoin",
@@ -221,7 +235,7 @@ function case:Run()
         args = {fromAddr, 1},
     })
 --     print("ix. DaiJoin call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "Vat",
@@ -230,7 +244,7 @@ function case:Run()
         args = {"0x5444535300000000000000000000000000000000000000000000000000000000", fromAddr, fromAddr, fromAddr, -100, -1},
     })
 --     print("x. Vat call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     result = self.blockchain:Invoke({
         caller = fromAddr,
         contract = "GemJoin",
@@ -239,7 +253,7 @@ function case:Run()
         args = {fromAddr, 1000},
     })
 --     print("xi. GemJoin call result:" .. result.UID)
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
 
     --print("call result:" .. result.UID)
     --self.blockchain:Confirm(result)

@@ -9,7 +9,7 @@ reConnectTime = 10000
     version = "2.4"
 
 [jsonRPC]
-    nodes = ["localhost"]
+    nodes = ["172.22.79.241"]
     # JsonRpc connect port
     ports = ["8081"]
 

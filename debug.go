@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Debug related config keys
+// Debug related config eth
 const (
 	PprofRecordDuration = "5s"
 	PprofTimeFmt        = "2006-01-02-15-04-05"

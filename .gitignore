@@ -3,7 +3,7 @@
 .vscode
 agile
 frigate
-hyperbench
+binary/centos7/hyperbench
 result.html
 detail.js
 *.[oa]

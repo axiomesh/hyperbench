@@ -1,8 +1,9 @@
 [engine]
-rate = 1
-duration = "200h"
-cap = 1
-accounts = 100
+rate = 30
+duration = "600s"
+cap = 30
+accounts = 400000
+alive = 100000
 
 [client]
 script = "benchmark/ethereum/makerdao/script.lua" # 脚本
@@ -16,7 +17,7 @@ enable_config_contract_address = false            #是否允许配置已部署�
 [recorder.log]
 dump = false
 dir = "./logs"
-level = "info"
+level = "debug"
 
 [recorder.csv]
 dir = "./csv"

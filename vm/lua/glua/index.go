@@ -12,5 +12,6 @@ func newIdexIndex(L *lua.LState, idx *idex.Index) lua.LValue {
 	idxTable.RawSetString("Engine", lua.LNumber(idx.Engine))
 	idxTable.RawSetString("Tx", lua.LNumber(idx.Tx))
 	idxTable.RawSetString("Accounts", lua.LNumber(idx.Accounts))
+	idxTable.RawSetString("Alive", lua.LNumber(idx.Alive))
 	return idxTable
 }

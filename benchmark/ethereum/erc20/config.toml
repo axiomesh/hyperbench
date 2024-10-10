@@ -1,8 +1,9 @@
 [engine]
-rate = 10
-duration = "200h"
-cap = 10
-accounts = 100
+rate = 50
+duration = "600s"
+cap = 15
+accounts = 1600000
+alive = 200000
 
 [client]
 script = "benchmark/ethereum/erc20/script.lua"     # 脚本

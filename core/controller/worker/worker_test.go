@@ -13,7 +13,7 @@ import (
 )
 
 func TestLocalWorker(t *testing.T) {
-	localWorker, err := NewLocalWorker(LocalWorkerConfig{0, 5, 20, time.Second * 5, 100})
+	localWorker, err := NewLocalWorker(LocalWorkerConfig{0, 5, 20, time.Second * 5, 100, 1})
 	assert.NoError(t, err)
 	assert.NotNil(t, localWorker)
 
@@ -45,7 +45,7 @@ func TestLocalWorker(t *testing.T) {
 	localWorker.Done()
 	localWorker.Teardown()
 
-	l, _ := NewLocalWorker(LocalWorkerConfig{0, 5, 20, time.Second * 3, 100})
+	l, _ := NewLocalWorker(LocalWorkerConfig{0, 5, 20, time.Second * 3, 100, 1})
 	l.Do()
 	l.cancel()
 	time.Sleep(time.Second * 4)
@@ -60,6 +60,7 @@ func TestLocalNewWorkers(t *testing.T) {
 	rate = 1
 	duration = "5s"
 	cap = 1
+	alive = 10
 	`
 
 	os.MkdirAll("./benchmark/testLocal", 0755)
@@ -67,6 +68,8 @@ func TestLocalNewWorkers(t *testing.T) {
 
 	viper.AddConfigPath("benchmark/testLocal")
 	viper.ReadInConfig()
+	//alive := viper.GetInt("engine.alive")
+	//log.Printf("alive 的值为: %d", alive)
 	worker, err := NewWorkers()
 	assert.NotNil(t, worker)
 	assert.NoError(t, err)

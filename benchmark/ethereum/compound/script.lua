@@ -1,8 +1,11 @@
 local case = testcase.new()
 local contractTable = {}
 local maxDeployContractNum = 10
-local from = "dD2FD4581271e230360230F9337D5c0430Bf44C0"
+--local from = "3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+--local from = "eEEE1c9D7773dBba09663baf6b8264cCe65c3C74"
+local from = "39cfbc5145CfFbB0C937fADDf9e5Ce6e790003Bd"
 local transferValueEveryRun = "400000000000000000000"
+local start_time = os.time()
 
 function sleep(n)
    os.execute("sleep " .. tonumber(n))
@@ -118,21 +121,34 @@ end
 -- Attention: this is called in local worker vm
 -- Run more time called by lua vm, this is controled by config
 function case:Run()
+   local time_diff = os.difftime(os.time(), start_time)
+   --local multiple = time_diff / (24 * 3600)
+   local multiple = math.floor(time_diff / (60))
    -- get random contract
    local randomContractIndex = self.toolkit.RandInt(0, #contractTable)
    local contract = contractTable[randomContractIndex + 1]
-   local fromAddr = self.blockchain:GetRandomAccount(from)
-   print("from addr:" .. fromAddr)
+
+   local range = math.floor(self.index.Accounts / self.index.Alive)
+   if multiple == 0 then
+      randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+   else
+      randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+   end
+   local fromNew = self.blockchain:GetAccount(randomFaucet)
+   --local fromAddr = self.blockchain:GetRandomAccount(fromNew)
+   local fromAddr = self.blockchain:GetRandomAccountByGroup()
+   --local fromAddr = self.blockchain:G
+   --print("from addr:" .. fromAddr)
 
    -- transfer token
    local result = self.blockchain:Transfer({
-           from = from,
+           from = fromNew,
            to = fromAddr,
            amount = transferValueEveryRun,
            extra = "transfer",
        })
    --print("i. ERC20 mint result:" .. result.UID)
-   self.blockchain:Confirm(result)
+   --self.blockchain:Confirm(result)
 
    local uniMint=10000000
    local usdcMint=100000000

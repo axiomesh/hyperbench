@@ -61,6 +61,7 @@ func NewWorkers() (workers []Worker, err error) {
 			Rate:     viper.GetInt64(fcom.EngineRatePath),
 			Duration: viper.GetDuration(fcom.EngineDurationPath),
 			Accounts: viper.GetInt64(fcom.EngineAccountsPath),
+			Alive:    viper.GetInt64(fcom.EngineAlivePath),
 		})
 		if err != nil {
 			return nil, errors.Wrap(err, ErrConfig.Error())

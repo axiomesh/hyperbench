@@ -1,10 +1,13 @@
 local case = testcase.new()
 local contractTable = {}
 local maxDeployContractNum = 1
-local faucet = "a0Ee7A142d267C1f36714E4a8F75612F20a79720"
-local receive = "264e23168e80f15e9311F2B88b4D7abeAba47E54"
-local transferMaxValue = "1000000000000000000000000"
-local transferValueEveryRun = "100000000000000000000"
+--local faucet = "a0Ee7A142d267C1f36714E4a8F75612F20a79720"
+--local receive = "264e23168e80f15e9311F2B88b4D7abeAba47E54"
+local faucet = "2CB3BB763C7aD98bDb0EEDb3136d344e503c46F1"
+local receive = "5DcccDC06FEA0d9E8C662F38F47ccB2bb377460d"
+local transferMaxValue = "10000000000000000000"
+local transferValueEveryRun = "1"
+local start_time = os.time()
 
 function sleep(n)
     os.execute("sleep " .. tonumber(n))
@@ -61,28 +64,35 @@ function case:BeforeRun()
     end
 
     -- wait token confirm
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
 end
 
 function case:Run()
-    -- get random contract
+    local time_diff = os.difftime(os.time(), start_time)
+    --local multiple = time_diff / (24 * 3600)
+    local multiple = math.floor(time_diff / (60))
+    local range = math.floor(self.index.Accounts / self.index.Alive)
+    if multiple == 0 then
+        randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+    else
+        randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+    end
+
     local randomContractIndex = self.toolkit.RandInt(0, #contractTable)
     local contract = contractTable[randomContractIndex + 1] -- start index is 1
     local routerAddr = contract["UniswapV2Router02"]
     local L7Addr = contract["AxiomL7"]
     local L8Addr = contract["AxiomL8"]
-
-    local accountNum = math.min(self.index.Accounts, 200)
-    local randomFaucet = self.toolkit.RandInt(0, accountNum)
     local faucet = self.blockchain:GetAccount(randomFaucet)
-    local sender = self.blockchain:GetRandomAccount(faucet)
+    --local sender = self.blockchain:GetRandomAccount(faucet)
+    local sender = self.blockchain:GetRandomAccountByGroup()
     local result = self.blockchain:Transfer({
         from = faucet,
         to = sender,
         amount = transferValueEveryRun,
         extra = "uniswap transfer",
     })
-    self.blockchain:Confirm(result)
+    --self.blockchain:Confirm(result)
     local amount = 1000000000000000000000     -- 1000枚代币
     local min = 0    -- 0.001 枚代币   可以设置为0
     local token1Addr = L7Addr -- erc20 合约地址
@@ -95,7 +105,7 @@ function case:Run()
         func = "approve",
         args = { routerAddr, amount }
     })
-    self.blockchain:Confirm(approveTokenA)
+    --self.blockchain:Confirm(approveTokenA)
     --print("approveTokenA:", approveTokenA.UID)
     local approveTokenB = self.blockchain:Invoke({
         caller = sender,
@@ -104,7 +114,7 @@ function case:Run()
         func = "approve",
         args = { routerAddr, amount }
     })
-    self.blockchain:Confirm(approveTokenB)
+    --self.blockchain:Confirm(approveTokenB)
     --print("approveTokenB:", approveTokenB.UID)
     random = self.toolkit.RandInt(0, 2)
     if random == 0 then
@@ -116,7 +126,7 @@ function case:Run()
             func = "mint",
             args = { sender, amount },
         })
-        self.blockchain:Confirm(mintResult)
+        --self.blockchain:Confirm(mintResult)
         --print("r=0,mintResult:", mintResult.UID)
         local mintResult2 = self.blockchain:Invoke({
             caller = sender,
@@ -125,7 +135,7 @@ function case:Run()
             func = "mint",
             args = { sender, amount * 0.5 },
         })
-        self.blockchain:Confirm(mintResult2)
+        --self.blockchain:Confirm(mintResult2)
 --         print("r=0,mintResult2:", mintResult2.UID)
         local addLiquidity = self.blockchain:Invoke({
             caller = sender,
@@ -143,7 +153,7 @@ function case:Run()
                 deadline,
             },
         })
-        self.blockchain:Confirm(addLiquidity)
+        --self.blockchain:Confirm(addLiquidity)
 --         print("r=0,addLiquidity: ", addLiquidity.UID)
     else
         --r=1 swap token
@@ -170,7 +180,7 @@ function case:Run()
                 deadline,
             },
         })
-        self.blockchain:Confirm(swapResult)
+        --self.blockchain:Confirm(swapResult)
 --         print("r=1,swap: ", swapResult.UID)
     end
 end

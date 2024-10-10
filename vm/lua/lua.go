@@ -42,6 +42,7 @@ func NewVM(base *base.VMBase) (vm *VM, err error) {
 			VM:       base.Ctx.VMIdx,
 			Engine:   base.Ctx.Engine,
 			Accounts: base.Ctx.Accounts,
+			Alive:    base.Ctx.Alive,
 		},
 	}
 

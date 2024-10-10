@@ -34,7 +34,7 @@ contract ERC20 is IERC20 {
     constructor(address sender, uint256 amount) public {
         _balances[sender] += amount;
         _totalSupply += amount;
-        emit Transfer(address(0), sender, amount);
+        emit Transfer(address(0), sender, amount);//这里的address(0)是什么
     }
 
     function totalSupply() public view returns (uint256) {
@@ -83,7 +83,7 @@ contract ERC20 is IERC20 {
     function mint(uint256 amount) external {
         _balances[msg.sender] += amount;
         _totalSupply += amount;
-        emit Transfer(address(0), msg.sender, amount);
+        emit Transfer(address(0), msg.sender, amount);//这里的address(0)是什么
     }
 
     function burn(uint256 amount) external {

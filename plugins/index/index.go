@@ -7,4 +7,5 @@ type Index struct {
 	Engine   int64 `mapstructure:"engine"`
 	Tx       int64 `mapstructure:"tx"`
 	Accounts int64 `mapstructure:"accounts"`
+	Alive    int64 `mapstructure:"alive"`
 }

@@ -31,13 +31,14 @@ func TestInitCmd(t *testing.T) {
 }
 
 func TestStart(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	defer os.RemoveAll("./benchmark")
 	config := `
 	[engine]
 	rate = 10
 	duration = "5s"
 	cap = 1
+    alive = 10
 	urls = ["localhost:8080","localhost:8085","localhost:8082"]
 
 	[client]
@@ -61,6 +62,7 @@ func TestStart(t *testing.T) {
 	viper.Set("engine.urls", "")
 	d = []string{"start", "./benchmark/ethInvoke"}
 	command.SetArgs(d)
+	//viper.GetInt("engine.alive")
 	_, err = command.ExecuteC()
 	assert.NoError(t, err)
 }

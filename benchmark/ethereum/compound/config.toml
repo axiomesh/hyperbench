@@ -1,8 +1,9 @@
 [engine]
-rate = 1                        # 速率，重点压测指标
-duration = "30s"                # 持续时间
-cap = 1                        # 客户端虚拟机数量，类似CPU核心数
-accounts = 200                 # 总账户数
+rate = 15                        # 速率，重点压测指标
+duration = "600s"                # 持续时间
+cap = 5                        # 客户端虚拟机数量，类似CPU核心数
+accounts = 400000 # 总账户数
+alive = 300000
 
 [client]
 script = "benchmark/ethereum/compound/script.lua" # 脚本

@@ -35,7 +35,7 @@ type PoolImpl struct {
 }
 
 // NewPoolImpl create PoolImpl.
-func NewPoolImpl(workerID int64, cap int64, accounts int64) (*PoolImpl, error) {
+func NewPoolImpl(workerID int64, cap int64, accounts int64, alive int64) (*PoolImpl, error) {
 	p := &PoolImpl{
 		cap: cap,
 		ch:  make(chan vm.VM, cap),
@@ -51,6 +51,7 @@ func NewPoolImpl(workerID int64, cap int64, accounts int64) (*PoolImpl, error) {
 			VMIdx:     0,
 			Engine:    engine,
 			Accounts:  accounts,
+			Alive:     alive,
 		},
 	}
 	var i int64
