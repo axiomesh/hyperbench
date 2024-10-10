@@ -3,7 +3,8 @@ local contractTable = {}
 local maxDeployContractNum = 10
 --local from = "3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
 --local from = "eEEE1c9D7773dBba09663baf6b8264cCe65c3C74"
-local from = "39cfbc5145CfFbB0C937fADDf9e5Ce6e790003Bd"
+--local from = "39cfbc5145CfFbB0C937fADDf9e5Ce6e790003Bd"
+local from = "31BE7CCBAA2DA2E992DFe76504a3B6FAF7843D54"
 local transferValueEveryRun = "400000000000000000000"
 local start_time = os.time()
 
@@ -135,9 +136,7 @@ function case:Run()
       randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
    end
    local fromNew = self.blockchain:GetAccount(randomFaucet)
-   --local fromAddr = self.blockchain:GetRandomAccount(fromNew)
-   local fromAddr = self.blockchain:GetRandomAccountByGroup()
-   --local fromAddr = self.blockchain:G
+   local fromAddr = self.blockchain:GetRandomAccount(fromNew)
    --print("from addr:" .. fromAddr)
 
    -- transfer token

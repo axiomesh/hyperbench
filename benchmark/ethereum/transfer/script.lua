@@ -6,32 +6,32 @@ function sleep(n)
 end
 
 
-function case:BeforeRun()
-    --print("accounts num:" .. self.index.Accounts)
-    local from = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-    --print(self.index.Accounts)
-    if self.index.Accounts < 2 then
-        print("Accounts number must be at least 2")
-        return
-    end
-    local accountNum = math.min(self.index.Accounts, 200)
-    local result
-    for i=1, accountNum do
-        local toAddr = self.blockchain:GetAccount(i-1)
-        if toAddr ~= from then
-            result = self.blockchain:Transfer({
-                from = from,
-                to = toAddr,
-                amount = '1000000000000000000000000',
-                extra = "11",
-            })
-            sleep(0.1)
-        end
-    end
-
-    -- wait token confirm
-    --self.blockchain:Confirm(result)
-end
+--function case:BeforeRun()
+--    --print("accounts num:" .. self.index.Accounts)
+--    local from = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+--    --print(self.index.Accounts)
+--    if self.index.Accounts < 2 then
+--        print("Accounts number must be at least 2")
+--        return
+--    end
+--    local accountNum = math.min(self.index.Accounts, 200)
+--    local result
+--    for i=1, accountNum do
+--        local toAddr = self.blockchain:GetAccount(i-1)
+--        if toAddr ~= from then
+--            result = self.blockchain:Transfer({
+--                from = from,
+--                to = toAddr,
+--                amount = '1000000000000000000000000',
+--                extra = "11",
+--            })
+--            sleep(0.1)
+--        end
+--    end
+--
+--    -- wait token confirm
+--    --self.blockchain:Confirm(result)
+--end
 
 function case:Run()
 

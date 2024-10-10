@@ -1,8 +1,9 @@
 local case = testcase.new()
 local contractTable = {}
-local maxDeployContractNum = 100
+local maxDeployContractNum = 10
 --local from = "9965507D1a55bcC2695C58ba16FB37d819B0A4dc"
-local from = "83a81eb60fb2CE7C8db70D80Eb07e9d1E4655C62"
+--local from = "83a81eb60fb2CE7C8db70D80Eb07e9d1E4655C62"
+local from = "3bA3053a98396cea0EaDD1fCD0cdfd08dE71DC9e"
 local transferValueEveryRun = "80000000000000000000"
 local start_time = os.time()
 
