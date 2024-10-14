@@ -130,13 +130,23 @@ function case:Run()
    local contract = contractTable[randomContractIndex + 1]
 
    local range = math.floor(self.index.Accounts / self.index.Alive)
+
+   local start_index = 0
+   local end_index = self.index.Alive
+
    if multiple == 0 then
-      randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+      --randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+      start_index = self.index.Alive * multiple
+      end_index = self.index.Alive * (multiple + 1)
    else
-      randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+      --randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+      start_index = self.index.Alive * (multiple % range)
+      end_index = self.index.Alive * (multiple % range + 1)
    end
-   local fromNew = self.blockchain:GetAccount(randomFaucet)
-   local fromAddr = self.blockchain:GetRandomAccount(fromNew)
+   --local fromNew = self.blockchain:GetAccount(randomFaucet)
+   --local fromAddr = self.blockchain:GetRandomAccount(fromNew)
+   local fromNew = self.blockchain:GetRandomAccountByGroupExpectSelf("123",start_index,end_index)
+   local fromAddr = self.blockchain:GetRandomAccountByGroupExpectSelf(fromNew,start_index,end_index)
    --print("from addr:" .. fromAddr)
 
    -- transfer token

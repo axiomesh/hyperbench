@@ -45,13 +45,22 @@ function case:Run()
 
     -- transfer token
     local range = math.floor(self.index.Accounts / self.index.Alive)
+
+    local start_index = 0
+    local end_index = self.index.Alive
+
     if multiple == 0 then
-        randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+        --randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+        start_index = self.index.Alive * multiple
+        end_index = self.index.Alive * (multiple + 1)
     else
-        randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+        --randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+        start_index = self.index.Alive * (multiple % range)
+        end_index = self.index.Alive * (multiple % range + 1)
     end
-    local fromNew = self.blockchain:GetAccount(randomFaucet)
-    local fromAddr = self.blockchain:GetRandomAccount(fromNew)
+    --local fromNew = self.blockchain:GetAccount(randomFaucet)
+    local fromNew = self.blockchain:GetRandomAccountByGroupExpectSelf("123",start_index,end_index)
+    local fromAddr = self.blockchain:GetRandomAccountByGroupExpectSelf(fromNew,start_index,end_index)
     if fromAddr ~= fromNew then
         result = self.blockchain:Transfer({
             from = fromNew,
@@ -75,7 +84,7 @@ function case:Run()
     --self.blockchain:Confirm(result)
 
     -- invoke erc20 contract
-    local toAddr = self.blockchain:GetRandomAccount(fromAddr)
+    local toAddr = self.blockchain:GetRandomAccountByGroupExpectSelf(fromAddr,start_index,end_index)
     --print("to addr:" .. toAddr)
     local random = self.toolkit.RandInt(0, 2)
     local value = self.toolkit.RandInt(1, 100)
@@ -90,7 +99,7 @@ function case:Run()
         })
     else
         -- make sure that randomFaucet is not equal to randomFaucet2
-        fromAddr2 = self.blockchain:GetRandomAccount(fromAddr)
+        fromAddr2 = self.blockchain:GetRandomAccountByGroupExpectSelf(fromAddr,start_index,end_index)
         result = self.blockchain:Invoke({
             caller = fromAddr,
             contract = "ERC20",

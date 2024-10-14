@@ -39,14 +39,24 @@ function case:Run()
     --local multiple = time_diff / (24 * 3600)
     local multiple = math.floor(time_diff / (60))
     local range = math.floor(self.index.Accounts / self.index.Alive)
+
+    local start_index = 0
+    local end_index = self.index.Alive
+
     if multiple == 0 then
-        randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+        --randomFaucet = self.toolkit.RandInt(self.index.Alive * multiple, self.index.Alive * (multiple + 1))
+        start_index = self.index.Alive * multiple
+        end_index = self.index.Alive * (multiple + 1)
     else
-        randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+        --randomFaucet = self.toolkit.RandInt(self.index.Alive * (multiple % range), self.index.Alive * (multiple % range + 1))
+        start_index = self.index.Alive * (multiple % range)
+        end_index = self.index.Alive * (multiple % range + 1)
     end
 
-    fromAddr = self.blockchain:GetAccount(randomFaucet)
-    toAddr = self.blockchain:GetRandomAccount(fromAddr)
+    --fromAddr = self.blockchain:GetAccount(randomFaucet)
+
+    local fromAddr = self.blockchain:GetRandomAccountByGroupExpectSelf("123",start_index,end_index)
+    toAddr = self.blockchain:GetRandomAccountByGroupExpectSelf(fromAddr,start_index,end_index)
     --print("from addr:" .. fromAddr .. "to addr:" .. toAddr)
     local ret = self.blockchain:Transfer({
         from = fromAddr, --"14dC79964da2C08b23698B3D3cc7Ca32193d9955",
