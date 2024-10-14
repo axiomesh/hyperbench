@@ -69,16 +69,17 @@ type RejectMgr struct {
 
 func (rm *RejectMgr) writeRejectsToFile() error {
 	rejects := rm.getAllRejectTx()
-	if len(rejects) == 0 {
-		return nil // No rejects to write
+	countInfo := fmt.Sprintf("total reject count: %d\n", len(rejects))
+	data := []byte(countInfo)
+	if len(rejects) != 0 {
+		content, err := json.Marshal(rejects)
+		if err != nil {
+			return err
+		}
+		data = append(data, content...)
 	}
 
-	data, err := json.Marshal(rejects)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(rm.rejectFile, data, 0644)
+	err := os.WriteFile(rm.rejectFile, data, 0644)
 	if err != nil {
 		return err
 	}
@@ -157,7 +158,7 @@ func (nm *NonceMgr) subNonce(addr common.Address, reason string) {
 
 	if nonce, ok := nm.nonceMap[addr.String()]; ok {
 		txPointer := TxPointer{account: addr.String(), nonce: nonce}
-		rejectMgr.rejectM.Store(txPointer, reason)
+		rejectMgr.addRejectTx(txPointer, reason)
 		nonce--
 		nm.nonceMap[addr.String()] = nonce
 	}
@@ -201,7 +202,7 @@ func InitEth() {
 	log := fcom.GetLogger("eth")
 	configPath := viper.GetString(fcom.ClientConfigPath)
 	rejectMgr.rejectFile = filepath.Join(configPath, "reject-txs.json")
-	rejectMgr.startPeriodicWrite(time.Minute * 10)
+	rejectMgr.startPeriodicWrite(time.Minute * 1)
 	options := viper.GetStringMap(fcom.ClientOptionPath)
 	accountCount = viper.GetUint64(fcom.EngineAccountsPath)
 	files, err := os.ReadDir(configPath + "/keystore")
