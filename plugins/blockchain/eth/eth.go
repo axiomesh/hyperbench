@@ -11,9 +11,11 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -54,6 +56,83 @@ type NonceMgr struct {
 	lock     sync.RWMutex
 }
 
+type TxPointer struct {
+	account string
+	nonce   uint64
+}
+
+type RejectMgr struct {
+	rejectM     sync.Map // map[TxPointer]string, key is TxPointer, value is error reason
+	rejectCount atomic.Int64
+	rejectFile  string // update reject txs to file
+}
+
+func (rm *RejectMgr) writeRejectsToFile() error {
+	rejects := rm.getAllRejectTx()
+	if len(rejects) == 0 {
+		return nil // No rejects to write
+	}
+
+	data, err := json.Marshal(rejects)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(rm.rejectFile, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rm *RejectMgr) startPeriodicWrite(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				if err := rm.writeRejectsToFile(); err != nil {
+					fmt.Printf("Error writing to file: %v\n", err)
+				}
+				fmt.Println("Write reject-txs to file successfully")
+			}
+		}
+	}()
+}
+
+func (rm *RejectMgr) addRejectTx(key TxPointer, reason string) {
+	rm.rejectM.Store(key, reason)
+	rm.rejectCount.Add(1)
+}
+
+func (rm *RejectMgr) GetRejectCount() int64 {
+	return rm.rejectCount.Load()
+}
+
+func (rm *RejectMgr) GetRejectTx(key TxPointer) string {
+	if v, ok := rm.rejectM.Load(key); ok {
+		return v.(string)
+	}
+	return ""
+}
+
+func (rm *RejectMgr) getAllRejectTx() map[TxPointer]string {
+	m := make(map[TxPointer]string)
+	rm.rejectM.Range(func(key, value interface{}) bool {
+		m[key.(TxPointer)] = value.(string)
+		return true
+	})
+	return m
+}
+
+func (rm *RejectMgr) removeRejectTx(key TxPointer) {
+	if _, ok := rm.rejectM.Load(key); ok {
+		rm.rejectM.Delete(key)
+		rm.rejectCount.Add(-1)
+	}
+}
+
 func (nm *NonceMgr) getNonceAndAdd(client *ethclient.Client, addr common.Address) (uint64, error) {
 	nm.lock.Lock()
 	defer nm.lock.Unlock()
@@ -72,11 +151,13 @@ func (nm *NonceMgr) getNonceAndAdd(client *ethclient.Client, addr common.Address
 	return nonce, nil
 }
 
-func (nm *NonceMgr) subNonce(addr common.Address) {
+func (nm *NonceMgr) subNonce(addr common.Address, reason string) {
 	nm.lock.Lock()
 	defer nm.lock.Unlock()
 
 	if nonce, ok := nm.nonceMap[addr.String()]; ok {
+		txPointer := TxPointer{account: addr.String(), nonce: nonce}
+		rejectMgr.rejectM.Store(txPointer, reason)
 		nonce--
 		nm.nonceMap[addr.String()] = nonce
 	}
@@ -111,6 +192,7 @@ var (
 	contracts       map[string]Contract
 	nonceMgr        NonceMgr
 	accountCount    uint64
+	rejectMgr       RejectMgr
 )
 
 func InitEth() {
@@ -118,6 +200,8 @@ func InitEth() {
 
 	log := fcom.GetLogger("eth")
 	configPath := viper.GetString(fcom.ClientConfigPath)
+	rejectMgr.rejectFile = filepath.Join(configPath, "reject-txs.json")
+	rejectMgr.startPeriodicWrite(time.Minute * 10)
 	options := viper.GetStringMap(fcom.ClientOptionPath)
 	accountCount = viper.GetUint64(fcom.EngineAccountsPath)
 	files, err := os.ReadDir(configPath + "/keystore")
@@ -245,12 +329,14 @@ func (e *ETH) DeployBigContract(addr, contractName string, gasLimit uint64, args
 
 	contractAddress, _, _, err := bind.DeployContract(auth, deployContract.parsedAbi, common.FromHex(deployContract.BIN), e.ethClient, deployArgs...)
 	if err != nil {
-		e.Logger.Errorf("deploycontract failed: %v", err)
-		nonceMgr.subNonce(accountAddr)
+		wErr := fmt.Errorf("deploy contract: %s error: %v", contractName, err)
+		e.Logger.Errorf(wErr.Error())
+		nonceMgr.subNonce(accountAddr, wErr.Error())
 		return "", err
 	}
 
 	e.Logger.Infof("deploy contract: %s success, address: %s", contractName, contractAddress)
+	rejectMgr.removeRejectTx(TxPointer{account: addr, nonce: nonce})
 	e.contractTable[contractName] = contractAddress.String()
 
 	return contractAddress.String(), nil
@@ -305,8 +391,9 @@ func (e *ETH) Invoke(invoke fcom.Invoke, ops ...fcom.Option) *fcom.Result {
 	tx, err := instance.Transact(auth, invoke.Func, args...)
 	sendTime := time.Now().UnixNano()
 	if err != nil {
-		e.Logger.Errorf("invoke error: %v", err)
-		nonceMgr.subNonce(from)
+		wErr := fmt.Errorf("invoke error: %v", err)
+		e.Logger.Errorf(wErr.Error())
+		nonceMgr.subNonce(from, wErr.Error())
 		return &fcom.Result{
 			Label:     invoke.Func,
 			UID:       fcom.InvalidUID,
@@ -316,6 +403,7 @@ func (e *ETH) Invoke(invoke fcom.Invoke, ops ...fcom.Option) *fcom.Result {
 			SendTime:  sendTime,
 		}
 	}
+	rejectMgr.removeRejectTx(TxPointer{account: invoke.Caller, nonce: nonce})
 	ret := &fcom.Result{
 		Label:     invoke.Func,
 		UID:       tx.Hash().String(),
@@ -473,13 +561,14 @@ func (e *ETH) Transfer(args fcom.Transfer, ops ...fcom.Option) (result *fcom.Res
 
 	account, ok := accounts[args.From]
 	if !ok {
-		e.Logger.Errorf("get account error: from: %s", args.From)
-		nonceMgr.subNonce(from)
+		wErr := fmt.Errorf("get account error: from: %s", args.From)
+		e.Logger.Errorf(wErr.Error())
+		nonceMgr.subNonce(from, wErr.Error())
 		return e.handleErr()
 	}
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(e.chainID), account)
 	if err != nil {
-		nonceMgr.subNonce(from)
+		nonceMgr.subNonce(from, err.Error())
 		return &fcom.Result{
 			Label:     fcom.BuiltinTransferLabel,
 			UID:       fcom.InvalidUID,
@@ -492,8 +581,9 @@ func (e *ETH) Transfer(args fcom.Transfer, ops ...fcom.Option) (result *fcom.Res
 	err = e.ethClient.SendTransaction(context.Background(), signedTx)
 	sendTime := time.Now().UnixNano()
 	if err != nil {
-		e.Logger.Errorf("transfer error: %v", err)
-		nonceMgr.subNonce(from)
+		wErr := fmt.Errorf("transfer : %v", err)
+		e.Logger.Errorf(wErr.Error())
+		nonceMgr.subNonce(from, wErr.Error())
 		return &fcom.Result{
 			Label:     fcom.BuiltinTransferLabel,
 			UID:       fcom.InvalidUID,
@@ -504,6 +594,7 @@ func (e *ETH) Transfer(args fcom.Transfer, ops ...fcom.Option) (result *fcom.Res
 		}
 	}
 
+	rejectMgr.removeRejectTx(TxPointer{account: from.String(), nonce: nonce})
 	ret := &fcom.Result{
 		Label:     fcom.BuiltinTransferLabel,
 		UID:       signedTx.Hash().String(),
