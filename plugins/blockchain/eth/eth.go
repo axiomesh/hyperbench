@@ -202,7 +202,7 @@ func InitEth() {
 	log := fcom.GetLogger("eth")
 	configPath := viper.GetString(fcom.ClientConfigPath)
 	rejectMgr.rejectFile = filepath.Join(configPath, "reject-txs.json")
-	rejectMgr.startPeriodicWrite(time.Minute * 1)
+	rejectMgr.startPeriodicWrite(time.Minute * 10)
 	options := viper.GetStringMap(fcom.ClientOptionPath)
 	accountCount = viper.GetUint64(fcom.EngineAccountsPath)
 	files, err := os.ReadDir(configPath + "/keystore")

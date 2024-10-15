@@ -15,6 +15,8 @@ benchmark/ethereum/uniswap/eth/keystore
 benchmark/ethereum/makerdao/eth/keystore
 benchmark/ethereum/keys
 benchmark/fabric/compare/
+case_for_stable.sh
+**/eth/*
 assets
 *.so
 *.data
@@ -32,9 +34,7 @@ packrd
 lua/testImpl.lua
 dist
 *-address
-
 node_modules
 package.json
 package-lock.json
-
 *contract.txt
