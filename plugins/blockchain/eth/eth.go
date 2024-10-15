@@ -26,6 +26,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/meshplus/hyperbench/base"
 	fcom "github.com/meshplus/hyperbench/common"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -67,12 +68,27 @@ type RejectMgr struct {
 	rejectFile  string // update reject txs to file
 }
 
+type rejectEntry struct {
+	Account string `json:"account"`
+	Nonce   uint64 `json:"nonce"`
+	Reason  string `json:"reason"`
+}
+
 func (rm *RejectMgr) writeRejectsToFile() error {
 	rejects := rm.getAllRejectTx()
+
+	rejectsContent := lo.MapToSlice(rejects, func(key TxPointer, value string) rejectEntry {
+		return rejectEntry{
+			Account: key.account,
+			Nonce:   key.nonce,
+			Reason:  value,
+		}
+	})
+
 	countInfo := fmt.Sprintf("total reject count: %d\n", len(rejects))
 	data := []byte(countInfo)
 	if len(rejects) != 0 {
-		content, err := json.Marshal(rejects)
+		content, err := json.MarshalIndent(rejectsContent, "", "  ")
 		if err != nil {
 			return err
 		}
@@ -88,8 +104,8 @@ func (rm *RejectMgr) writeRejectsToFile() error {
 }
 
 func (rm *RejectMgr) startPeriodicWrite(interval time.Duration) {
-	ticker := time.NewTicker(interval)
 	go func() {
+		ticker := time.NewTicker(interval)
 		for {
 			select {
 			case <-ticker.C:
