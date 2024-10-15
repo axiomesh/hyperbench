@@ -11,6 +11,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.9.1
+	github.com/samber/lo v1.47.0
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
@@ -67,7 +68,7 @@ require (
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/grpc v1.43.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
